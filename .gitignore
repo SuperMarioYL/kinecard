@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+*.tsbuildinfo
+
+# render output (users generate these)
+out.mp4
+*.local.mp4
+
+# local scratch / editor / OS
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# assistant + build scratch (never ship)
+.claude/
+CLAUDE.md
+PUBLISH_BLOCKED.md
+BUILD_SETUP_NEXT_STEPS.md
+.spawn.*
+.builder_*
+.build_metadata*
+.stage_*
+_build_ctx.json

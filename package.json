@@ -1,0 +1,63 @@
+{
+  "name": "kinecard",
+  "version": "0.1.0",
+  "description": "把结构化文案渲染成 9:16 竖屏知识动效卡片短视频 — HTML → video 的可编辑模板项目，而非一次性 MP4。",
+  "keywords": [
+    "kinetic-typography",
+    "html-to-video",
+    "vertical-video",
+    "douyin",
+    "shipinhao",
+    "cjk",
+    "cli",
+    "ffmpeg",
+    "playwright"
+  ],
+  "license": "MIT",
+  "author": "SuperMarioYL",
+  "type": "commonjs",
+  "bin": {
+    "kinecard": "dist/cli.js"
+  },
+  "main": "dist/render.js",
+  "files": [
+    "dist",
+    "templates",
+    "examples",
+    "assets/fonts",
+    "assets/demo.gif",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "commander": "^12.1.0",
+    "playwright": "^1.49.0",
+    "yaml": "^2.6.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuperMarioYL/kinecard.git"
+  },
+  "homepage": "https://github.com/SuperMarioYL/kinecard#readme",
+  "bugs": {
+    "url": "https://github.com/SuperMarioYL/kinecard/issues"
+  }
+}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KineCard · mono</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="stage" class="stage" aria-live="polite"></main>
+
+    <script>
+      window.__CARD__ = window.__CARD__ || {
+        title: "// mono 模板",
+        subtitle: "等宽编排 · 逐行打字机",
+        lines: [
+          { text: "适合教程 / 极客风知识点" },
+          { text: "每行编号，逐字打出", accent: "#2dc79a" },
+          { text: "光标闪烁由时间决定，确定性渲染" }
+        ],
+        platform: "douyin"
+      };
+      window.__RENDER__ = window.__RENDER__ || {
+        preset: "douyin", fps: 30, size: [1080, 1920],
+        timing: { titleMs: 1300, perLineMs: 1600, lineInMs: 900, outroMs: 1300 },
+        safeZone: { top: 0.08, bottom: 0.18, left: 0.06, right: 0.06 }
+      };
+    </script>
+    <script src="template.js"></script>
+    <script>
+      if (!window.__KINECARD_RENDERING__ && window.KineCard) {
+        var t0 = performance.now();
+        (function loop() {
+          var t = (performance.now() - t0) % (window.KineCard.duration + 900);
+          window.KineCard.seek(t);
+          requestAnimationFrame(loop);
+        })();
+      }
+    </script>
+  </body>
+</html>

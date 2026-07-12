@@ -1,0 +1,100 @@
+/* minimal — 干净居中、逐行淡入上浮。字号用 vw，随 1080×1920 画布自动缩放。
+   字号比例与 CLI 的字幕安全区 linter 对齐：标题 8.6vw、正文 5.8vw。 */
+
+/* Bundled CJK webfont (Noto Sans SC subset, OFL). The renderer injects an
+   absolute-path copy of this face so 中文 renders offline regardless of host
+   fonts; this relative declaration lets the template preview standalone from
+   the built-in folder too. */
+@font-face {
+  font-family: "KineCJK";
+  font-weight: 400;
+  font-display: block;
+  src: url("../../assets/fonts/NotoSansSC-KineCard-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "KineCJK";
+  font-weight: 700;
+  font-display: block;
+  src: url("../../assets/fonts/NotoSansSC-KineCard-Bold.woff2") format("woff2");
+}
+
+:root {
+  --bg: #f5f5f7;
+  --fg: #1d1d1f;
+  --accent: #0071e3;
+  --muted: #6e6e73;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "KineCJK", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.stage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.kc-title {
+  font-size: 8.6vw;
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.4vh 0;
+  color: var(--fg);
+  will-change: opacity, transform;
+}
+
+.kc-sub {
+  font-size: 4.2vw;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--muted);
+  margin: 0 0 5vh 0;
+  will-change: opacity, transform;
+}
+
+.kc-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4vh;
+}
+
+.kc-line {
+  font-size: 5.8vw;
+  font-weight: 500;
+  line-height: 1.34;
+  margin: 0;
+  will-change: opacity, transform;
+}
+
+/* the leading accent bar that grows with the line */
+.kc-line::before {
+  content: "";
+  display: inline-block;
+  width: 0.5vw;
+  height: 0.9em;
+  margin-right: 2.4vw;
+  vertical-align: -0.05em;
+  border-radius: 1vw;
+  background: var(--accent);
+  transform: scaleY(var(--bar, 0));
+  transform-origin: center;
+}

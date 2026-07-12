@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KineCard · spotlight</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="stage" class="stage" aria-live="polite"></main>
+
+    <script>
+      window.__CARD__ = window.__CARD__ || {
+        title: "聚光模板",
+        subtitle: "当前行高亮，其余压暗",
+        lines: [
+          { text: "适合口播 / 观点型知识卡片" },
+          { text: "一次只强调一句话", accent: "#FF375F" },
+          { text: "深色底色，冲击力更强" }
+        ],
+        platform: "douyin"
+      };
+      window.__RENDER__ = window.__RENDER__ || {
+        preset: "douyin", fps: 30, size: [1080, 1920],
+        timing: { titleMs: 1400, perLineMs: 1500, lineInMs: 640, outroMs: 1200 },
+        safeZone: { top: 0.08, bottom: 0.18, left: 0.06, right: 0.06 }
+      };
+    </script>
+    <script src="template.js"></script>
+    <script>
+      if (!window.__KINECARD_RENDERING__ && window.KineCard) {
+        var t0 = performance.now();
+        (function loop() {
+          var t = (performance.now() - t0) % (window.KineCard.duration + 900);
+          window.KineCard.seek(t);
+          requestAnimationFrame(loop);
+        })();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+# 一张 KineCard 卡片 = 一段结构化文案。
+# 渲染： kinecard render examples/card.yaml -t minimal -o out.mp4
+# 换模板即换风格：-t minimal（浅色）/ -t spotlight（深色聚光）/ -t mono（等宽打字机）。
+title: 三步做竖屏知识卡片
+subtitle: 无需剪映逐帧手 K
+lines:
+  - text: 写结构化文案，标题加要点
+  - text: 一条命令渲染成竖屏视频
+    accent: "#0071E3"
+  - text: 产物是可编辑的模板项目
+  - text: 改一行即可重渲单卡
+platform: douyin
+# 可选：整卡配色。留空则用模板自带的风格（推荐先体验各模板的默认外观）。
+# palette:
+#   bg: "#0B0B0F"
+#   fg: "#F5F5F7"
+#   accent: "#FF375F"
+#   muted: "#8A8A93"

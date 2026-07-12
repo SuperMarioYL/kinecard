@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KineCard · minimal</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!--
+      This is an EDITABLE template. Open it directly in a browser to preview the
+      sample below; the renderer injects your real card before this loads and
+      drives KineCard.seek(t) frame by frame.
+    -->
+    <main id="stage" class="stage" aria-live="polite"></main>
+
+    <script>
+      // Standalone preview fallback — ignored during a real render.
+      window.__CARD__ = window.__CARD__ || {
+        title: "KineCard 示例卡片",
+        subtitle: "竖屏知识动效卡片",
+        lines: [
+          { text: "写一段结构化文案" },
+          { text: "一条命令渲染成竖屏短视频", accent: "#0071E3" },
+          { text: "产物是可编辑、可复用的模板项目" }
+        ],
+        platform: "douyin"
+      };
+      window.__RENDER__ = window.__RENDER__ || {
+        preset: "douyin", fps: 30, size: [1080, 1920],
+        timing: { titleMs: 1400, perLineMs: 1300, lineInMs: 600, outroMs: 1200 },
+        safeZone: { top: 0.08, bottom: 0.18, left: 0.06, right: 0.06 }
+      };
+    </script>
+    <script src="template.js"></script>
+    <script>
+      // Preview loop, only when opened by hand (never during render).
+      if (!window.__KINECARD_RENDERING__ && window.KineCard) {
+        var t0 = performance.now();
+        (function loop() {
+          var t = (performance.now() - t0) % (window.KineCard.duration + 900);
+          window.KineCard.seek(t);
+          requestAnimationFrame(loop);
+        })();
+      }
+    </script>
+  </body>
+</html>
