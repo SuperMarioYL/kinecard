@@ -86,8 +86,11 @@ const DETERMINISM_ARGS = [
   "--disable-partial-raster",
   "--disable-skia-runtime-opts",
   "--deterministic-mode",
-  "--run-all-compositor-stages-before-draw",
-  "--disable-new-content-rendering-timeout",
+  // NOTE: --run-all-compositor-stages-before-draw was removed — on a headless CI
+  // runner (SwiftShader software GL) it makes page.screenshot() block until the
+  // 30s timeout, because a compositor stage never signals completion. We instead
+  // freeze animations at capture time (screenshot { animations: "disabled" }),
+  // which is both deterministic and CI-safe.
   "--hide-scrollbars",
 ];
 
@@ -159,7 +162,13 @@ export async function captureFrames(opts: CaptureOptions): Promise<string[]> {
         (window as unknown as { KineCard: { seek: (t: number) => void } }).KineCard.seek(t);
       }, times[i]);
       const p = join(outDir, frameName(i));
-      await page.screenshot({ path: p, type: "png", clip: { x: 0, y: 0, width, height } });
+      await page.screenshot({
+        path: p,
+        type: "png",
+        clip: { x: 0, y: 0, width, height },
+        animations: "disabled",
+        timeout: 60_000,
+      });
       paths.push(p);
       onProgress?.(i + 1, times.length);
     }
