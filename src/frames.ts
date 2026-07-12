@@ -74,6 +74,12 @@ export function frameName(i: number): string {
 
 // Chromium flags that shave off common sources of cross-run pixel drift.
 const DETERMINISM_ARGS = [
+  // CI runners (GitHub Actions ubuntu, most Docker images) run as root, where
+  // Chromium's sandbox cannot initialize and the launch hangs until timeout.
+  // These flags are safe for a headless, local-only render of trusted templates.
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-dev-shm-usage",
   "--force-color-profile=srgb",
   "--disable-lcd-text",
   "--font-render-hinting=none",
