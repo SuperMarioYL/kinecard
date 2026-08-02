@@ -38,6 +38,8 @@ export interface Warning {
 export const BODY_FONT_RATIO = 0.058;
 /** Font size (px) the templates use for the title, as a fraction of width. */
 export const TITLE_FONT_RATIO = 0.086;
+/** Font size (px) the templates use for the optional subtitle, as a fraction of width. */
+export const SUBTITLE_FONT_RATIO = 0.042;
 
 // CJK ideographs + CJK/fullwidth punctuation + Hangul — each ~1 em wide.
 const CJK_RE =
@@ -67,6 +69,7 @@ export function lintCard(card: Card, render: RenderConfig): Warning[] {
   const safeWidth = width * (1 - render.safeZone.left - render.safeZone.right);
   const bodyPx = Math.round(width * BODY_FONT_RATIO);
   const titlePx = Math.round(width * TITLE_FONT_RATIO);
+  const subtitlePx = Math.round(width * SUBTITLE_FONT_RATIO);
 
   const titleW = estimateTextWidthPx(card.title, titlePx);
   if (titleW > safeWidth) {
@@ -75,6 +78,16 @@ export function lintCard(card: Card, render: RenderConfig): Warning[] {
       kind: "safe-zone",
       message: `title overflows the safe zone by ~${over}% — shorten it or it may clip: "${card.title}"`,
     });
+  }
+  if (card.subtitle) {
+    const subW = estimateTextWidthPx(card.subtitle, subtitlePx);
+    if (subW > safeWidth) {
+      const over = Math.round(((subW - safeWidth) / safeWidth) * 100);
+      warnings.push({
+        kind: "safe-zone",
+        message: `subtitle overflows the safe zone by ~${over}% — shorten it or it may clip: "${card.subtitle}"`,
+      });
+    }
   }
   card.lines.forEach((line, i) => {
     const w = estimateTextWidthPx(line.text, bodyPx);
@@ -157,6 +170,12 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
     log(`re-rendering project ${proj.name} (${card.lines.length} lines, template/)`);
   } else {
     // --- card mode ---------------------------------------------------------
+    if (looksLikeDir(input)) {
+      // A directory that is not a KineCard project (no card.yaml). Without this
+      // guard we'd fall through to loadCard(dir) -> readFileSync on a directory,
+      // which throws an opaque Node EISDIR error instead of a human message.
+      throw new Error(`not a card.yaml or a KineCard project: ${input} (directory has no ${"card.yaml"})`);
+    }
     card = loadCard(input);
     const template = resolveBuiltin(opts.template ?? "minimal");
     renderCfg = resolveRenderConfig(card, { preset: opts.preset, fps: opts.fps });
@@ -201,6 +220,7 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
           log(`  capturing frames… ${pct}% (${done}/${total})`);
         }
       },
+      onWarning: (m) => log(`⚠ ${m}`),
     });
     log(`encoding ${frames.length} frames → ${outFile}`);
     await encode({

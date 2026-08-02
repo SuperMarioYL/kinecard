@@ -4,6 +4,29 @@ All notable changes to KineCard are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.2.0] - 2026-08-03
+
+Fix-driven minor release — four correctness defects found by reviewing the
+shipped v0.1.0 source. No new features; the deterministic HTML/CSS → 9:16
+render pipeline is unchanged.
+
+### Fixed
+- `lintCard` now also lints the optional `subtitle` line for 字幕安全区
+  overflow (it previously only checked `title` and `lines[]`), so a long
+  subtitle no longer clips silently. (`src/render.ts`)
+- `render({input: <dir>})` for a non-project directory now throws a clear
+  `not a card.yaml or a KineCard project` error instead of an opaque Node
+  EISDIR. (`src/render.ts`)
+- `loadCard` / `loadRenderConfig` wrap YAML / JSON parse failures with the
+  same `invalid <source> <path>: <msg>` context as zod errors, instead of a
+  bare parser traceback. (`src/schema.ts`)
+- When the bundled CJK webfont is missing, `captureFrames` now emits a
+  warning (`bundled CJK webfont not found — renders may differ across
+  machines`) instead of silently degrading to host system fonts and breaking
+  the byte-identical offline determinism guarantee. (`src/frames.ts`)
+
+[0.2.0]: https://github.com/SuperMarioYL/kinecard/releases/tag/v0.2.0
+
 ## [0.1.0] - 2026-07-13
 
 First public release — a deterministic HTML/CSS → 9:16 vertical kinetic

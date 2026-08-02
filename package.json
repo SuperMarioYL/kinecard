@@ -1,6 +1,6 @@
 {
   "name": "kinecard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "把结构化文案渲染成 9:16 竖屏知识动效卡片短视频 — HTML → video 的可编辑模板项目，而非一次性 MP4。",
   "keywords": [
     "kinetic-typography",

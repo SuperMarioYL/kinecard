@@ -7,6 +7,7 @@ import {
   CardSchema,
   computeDurationMs,
   loadCard,
+  loadRenderConfig,
   PLATFORM_PRESETS,
   PLATFORMS,
   resolveRenderConfig,
@@ -85,4 +86,19 @@ test("computeDurationMs = title + n*perLine + outro", () => {
   });
   assert.equal(computeDurationMs(timing, 3), 1000 + 3 * 1000 + 1000);
   assert.equal(computeDurationMs(timing, 0), 2000);
+});
+
+test("loadCard wraps a malformed-YAML syntax error with file context", () => {
+  const dir = mkdtempSync(join(tmpdir(), "kc-yaml-"));
+  const broken = join(dir, "broken.yaml");
+  // Unterminated quoted scalar → a YAML scanner error, not a zod error.
+  writeFileSync(broken, 'title: "unterminated string\nlines: []\n');
+  assert.throws(() => loadCard(broken), /invalid card .*broken\.yaml/);
+});
+
+test("loadRenderConfig wraps a malformed-JSON syntax error with file context", () => {
+  const dir = mkdtempSync(join(tmpdir(), "kc-json-"));
+  const broken = join(dir, "broken.json");
+  writeFileSync(broken, "{ not valid json ]");
+  assert.throws(() => loadRenderConfig(broken), /invalid render manifest .*broken\.json/);
 });

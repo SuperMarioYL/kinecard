@@ -148,7 +148,14 @@ function formatZodError(err: z.ZodError, source: string): Error {
 /** Parse + validate a card.yaml file. Throws a readable error on failure. */
 export function loadCard(path: string): Card {
   const raw = readFileSync(path, "utf8");
-  const data = parseYaml(raw);
+  let data: unknown;
+  try {
+    data = parseYaml(raw);
+  } catch (err) {
+    // A malformed card.yaml should fail with the same file context as a zod
+    // error, not a bare YAML parser traceback the user has to decode.
+    throw new Error(`invalid card ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  }
   const parsed = CardSchema.safeParse(data);
   if (!parsed.success) throw formatZodError(parsed.error, `card ${path}`);
   return parsed.data;
@@ -157,7 +164,12 @@ export function loadCard(path: string): Card {
 /** Parse + validate a render.json file. Throws a readable error on failure. */
 export function loadRenderConfig(path: string): RenderConfig {
   const raw = readFileSync(path, "utf8");
-  const data = JSON.parse(raw);
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`invalid render manifest ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  }
   const parsed = RenderConfigSchema.safeParse(data);
   if (!parsed.success) throw formatZodError(parsed.error, `render manifest ${path}`);
   return parsed.data;

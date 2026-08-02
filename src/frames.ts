@@ -65,6 +65,8 @@ export interface CaptureOptions {
   /** Directory to write `frame-000000.png …` into (must exist). */
   outDir: string;
   onProgress?: (done: number, total: number) => void;
+  /** Optional sink for non-fatal render warnings (e.g. missing bundled font). */
+  onWarning?: (msg: string) => void;
 }
 
 /** Zero-padded frame filename, e.g. `frame-000042.png`. */
@@ -146,6 +148,14 @@ export async function captureFrames(opts: CaptureOptions): Promise<string[]> {
         }
         await fonts.ready;
       });
+    } else {
+      // The bundled CJK webfont is absent (broken install / a copied project
+      // template without fonts). Surface it instead of silently rendering with
+      // host system fonts — silent degradation here breaks the byte-identical
+      // offline determinism that is the project's stated moat, with no signal.
+      opts.onWarning?.(
+        "bundled CJK webfont not found — renders may differ across machines (offline CJK determinism degraded)",
+      );
     }
 
     await page.waitForFunction(

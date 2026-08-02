@@ -62,3 +62,30 @@ test("bilibili's longer cap tolerates a duration that douyin would reject", () =
   assert.equal(lintCard(card, douyin).filter((w) => w.kind === "duration").length, 1);
   assert.equal(lintCard(card, bili).filter((w) => w.kind === "duration").length, 0);
 });
+
+test("an over-long subtitle raises a safe-zone warning naming the subtitle", () => {
+  const longSub = "这是一句非常非常长的副标题会明显超出竖屏字幕安全区的水平范围放不下";
+  const card = CardSchema.parse({
+    title: "标题",
+    subtitle: longSub,
+    lines: [{ text: "短行" }],
+    platform: "douyin",
+  });
+  const cfg = resolveRenderConfig(card);
+  const warnings = lintCard(card, cfg);
+  const sz = warnings.filter((w) => w.kind === "safe-zone" && w.message.includes("subtitle"));
+  assert.ok(sz.length >= 1, "expected a subtitle safe-zone warning");
+  assert.match(sz[0].message, /subtitle/);
+});
+
+test("a short subtitle triggers no safe-zone warnings", () => {
+  const card = CardSchema.parse({
+    title: "标题",
+    subtitle: "短副标题",
+    lines: [{ text: "写文案" }],
+    platform: "douyin",
+  });
+  const cfg = resolveRenderConfig(card);
+  const warnings = lintCard(card, cfg);
+  assert.equal(warnings.filter((w) => w.kind === "safe-zone").length, 0);
+});
