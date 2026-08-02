@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "name": "kinecard",
+  "github": "https://github.com/SuperMarioYL/kinecard",
+  "host": "kinecard.lei6393.com",
+  "lang": {
+    "primary": "zh",
+    "toggle": true
+  },
+  "accent": [
+    "#FF375F",
+    "#D6304A",
+    "#FF8FA3"
+  ],
+  "hero": {
+    "eyebrow": {
+      "zh": "一条命令 · 竖屏动效 · 可改可复用",
+      "en": "one command · vertical motion · editable & reusable"
+    },
+    "headline": {
+      "zh": "把文案变成竖屏知识动效卡片\n一条命令，改一行即时重渲",
+      "en": "Turn text into vertical knowledge motion cards\none command, edit a line and re-render instantly"
+    },
+    "sub": {
+      "zh": "产物是能 diff、能单卡重渲的模板项目——不是剪映那种黑盒草稿。离线、无真人、无配音。",
+      "en": "The output is an editable, diff-able template project you can re-render card-by-card — not a black-box draft. Offline, faceless, no voiceover."
+    },
+    "command": "npx kinecard render examples/card.yaml -t minimal -o out.mp4",
+    "cta": {
+      "zh": "看 GitHub",
+      "en": "View on GitHub"
+    },
+    "ctaGithub": {
+      "zh": "源码与模板",
+      "en": "Source & templates"
+    },
+    "scroll": {
+      "zh": "为什么是 KineCard",
+      "en": "why KineCard"
+    }
+  },
+  "advantages": [
+    {
+      "title": {
+        "zh": "一条命令出片",
+        "en": "One command to a finished clip"
+      },
+      "body": {
+        "zh": "把一段结构化文案渲染成 9:16 竖屏动效卡片视频——标题淡入、正文逐行 kinetic 上浮、卡片间转场，全程离线。",
+        "en": "Render structured text into a 9:16 vertical motion-card video — title fades in, body lines animate in line-by-line, cards transition, all offline."
+      },
+      "chips": [
+        "› 9:16 竖屏",
+        "› 中文离线渲染",
+        "› 免系统安装"
+      ]
+    },
+    {
+      "title": {
+        "zh": "改一行，重渲一张",
+        "en": "Edit a line, re-render one card"
+      },
+      "body": {
+        "zh": "--project 写出一个可编辑的模板项目；改 card.yaml 的一行文字或 accent 色，单卡重渲，画面即时更新。",
+        "en": "--project writes an editable template project; tweak one line or accent colour in card.yaml and re-render just that card — the picture updates instantly."
+      },
+      "chips": [
+        "› 可编辑模板",
+        "› 单卡重渲",
+        "› 可 diff 可复用"
+      ]
+    },
+    {
+      "title": {
+        "zh": "不踩平台的坑",
+        "en": "Won't trip the platform rules"
+      },
+      "body": {
+        "zh": "抖音 / 视频号 / B站 预设自带画布、帧率与时长上限；字幕安全区超限或时长超标会主动告警，免得你被平台裁切。",
+        "en": "Douyin / Shipinhao / Bilibili presets carry the canvas, frame rate and duration cap; it warns you when a line spills past the subtitle safe zone or the clip runs over — so the platform never crops you."
+      },
+      "chips": [
+        "› 抖音 / 视频号 / B站",
+        "› 字幕安全区告警",
+        "› 时长超限提醒"
+      ]
+    },
+    {
+      "title": {
+        "zh": "三套成套模板",
+        "en": "Three ready-made templates"
+      },
+      "body": {
+        "zh": "minimal 居中淡入、spotlight 聚光高亮、mono 等宽打字机——kinecard init 一键起手，kinecard list 看模板画廊。",
+        "en": "minimal centered fade-up, spotlight dark highlight, mono monospace typewriter — `kinecard init` scaffolds a starter, `kinecard list` browses the gallery."
+      },
+      "chips": [
+        "› minimal / spotlight / mono",
+        "› 一键 init 起手",
+        "› 模板画廊 list"
+      ]
+    }
+  ],
+  "scene": {
+    "kind": "particle-field"
+  },
+  "cta": {
+    "headline": {
+      "zh": "把你的知识点做成竖屏动效卡片",
+      "en": "Turn your knowledge into vertical motion cards"
+    },
+    "sub": {
+      "zh": "离线、无真人、无配音——一条命令开始。",
+      "en": "Offline, faceless, no voiceover — start with one command."
+    },
+    "button": {
+      "zh": "在 GitHub 上开始",
+      "en": "Start on GitHub"
+    }
+  },
+  "footer": {
+    "tag": {
+      "zh": "Apache-2.0 · 离线 · 无真人无配音",
+      "en": "Apache-2.0 · offline · faceless, no voiceover"
+    }
+  }
+}
