@@ -3,6 +3,7 @@
  * Distinct look: monospace, each line numbered and revealed with a typewriter,
  * plus a caret whose blink is a deterministic function of t (no wall clock).
  */
+// kinecard:font-ratios title=7.6 body=5.2 subtitle=3.8  (vw; read by src/templates.ts for the safe-zone linter)
 (function () {
   "use strict";
 

@@ -21,6 +21,7 @@ import {
   type RenderConfig,
 } from "./schema";
 import { resolveBuiltin, resolveProjectTemplate } from "./templates";
+import type { FontRatios } from "./templates";
 import { captureFrames } from "./frames";
 import { encode } from "./encode";
 import { isProjectDir, loadProject, writeProject, OUTPUT_FILE } from "./project";
@@ -62,14 +63,29 @@ export function estimateTextWidthPx(text: string, fontPx: number): number {
  * Produce warnings for a card under a render config: any line whose estimated
  * width exceeds the horizontal 字幕安全区, and whether the total duration blows
  * the platform's max. Pure — unit tested.
+ *
+ * `fontRatios` lets the caller pass the active template's title/body/subtitle
+ * font-size ratios (vw ÷ 100) so the estimate matches what the template
+ * actually renders — e.g. mono (7.6/5.2/3.8) instead of the minimal/spotlight
+ * (8.6/5.8/4.2) defaults baked in below. Omit it to use those defaults.
  */
-export function lintCard(card: Card, render: RenderConfig): Warning[] {
+export function lintCard(
+  card: Card,
+  render: RenderConfig,
+  fontRatios?: Partial<FontRatios>,
+): Warning[] {
   const warnings: Warning[] = [];
   const [width] = render.size;
   const safeWidth = width * (1 - render.safeZone.left - render.safeZone.right);
-  const bodyPx = Math.round(width * BODY_FONT_RATIO);
-  const titlePx = Math.round(width * TITLE_FONT_RATIO);
-  const subtitlePx = Math.round(width * SUBTITLE_FONT_RATIO);
+  const ratios = {
+    title: TITLE_FONT_RATIO,
+    body: BODY_FONT_RATIO,
+    subtitle: SUBTITLE_FONT_RATIO,
+    ...fontRatios,
+  };
+  const bodyPx = Math.round(width * ratios.body);
+  const titlePx = Math.round(width * ratios.title);
+  const subtitlePx = Math.round(width * ratios.subtitle);
 
   const titleW = estimateTextWidthPx(card.title, titlePx);
   if (titleW > safeWidth) {
@@ -158,6 +174,8 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
   let templateHtmlPath: string;
   let outFile: string;
   let projectDir: string | undefined;
+  /** Active template's font-size ratios for the safe-zone linter; undefined → defaults. */
+  let lintFontRatios: Partial<FontRatios> | undefined;
 
   if (looksLikeDir(input) && isProjectDir(input)) {
     // --- project re-render mode -------------------------------------------
@@ -178,8 +196,11 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
     }
     card = loadCard(input);
     const template = resolveBuiltin(opts.template ?? "minimal");
-    renderCfg = resolveRenderConfig(card, { preset: opts.preset, fps: opts.fps });
-
+    // Thread the template's designed timing as the render default so the MP4
+    // and render.json carry the template's pacing (mono 1300/1600/900/1300,
+    // spotlight 1400/1500/640/1200) rather than TimingSchema defaults.
+    renderCfg = resolveRenderConfig(card, { preset: opts.preset, fps: opts.fps }, template.timing);
+    lintFontRatios = template.fontRatios;
     if (opts.project) {
       // Materialize the editable project, then render FROM the written source.
       projectDir = abs(opts.project);
@@ -198,7 +219,7 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
   const durationMs = computeDurationMs(renderCfg.timing, card.lines.length);
 
   // Linter — always surface warnings; they are the whole point of platform-fit.
-  const warnings = lintCard(card, renderCfg);
+  const warnings = lintCard(card, renderCfg, lintFontRatios);
   for (const w of warnings) log(`⚠ ${w.message}`);
 
   // Ensure the output directory exists.

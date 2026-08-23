@@ -13,7 +13,8 @@
  * style-pack instead of a one-off export.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, isAbsolute, join, normalize } from "node:path";
+import { pathToFileURL } from "node:url";
 import { stringify as stringifyYaml } from "yaml";
 import {
   loadCard,
@@ -49,6 +50,25 @@ const CARD_HEADER = [
   "",
 ].join("\n");
 
+/**
+ * Rewrite relative `url(...)` references in template CSS to absolute `file://`
+ * URLs resolved against the template's source directory. The bundled
+ * `@font-face` declares `url("../../assets/fonts/...")`, which resolves in the
+ * built-in template folder but 404s once style.css is copied into a project
+ * (`<project>/template/`). Rewriting it to the same absolute `file://` woff2 the
+ * renderer injects (src/frames.ts `bundledFontFaceCss`) keeps the editable
+ * project preview loading KineCJK, so its CJK glyphs match the rendered MP4.
+ * Absolute / data: / http(s) / file: URLs and missing files are left untouched.
+ */
+export function rewriteRelativeUrlsToAbsolute(css: string, baseDir: string): string {
+  return css.replace(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g, (full, ref: string) => {
+    if (/^(https?:|file:|data:|#)/.test(ref) || isAbsolute(ref)) return full;
+    const abs = normalize(join(baseDir, ref));
+    if (existsSync(abs)) return `url('${pathToFileURL(abs).href}')`;
+    return full;
+  });
+}
+
 /** Materialize an editable project directory. Overwrites card/render/template. */
 export function writeProject(opts: WriteProjectOptions): string {
   const { dir, card, render, template } = opts;
@@ -59,9 +79,11 @@ export function writeProject(opts: WriteProjectOptions): string {
   writeFileSync(join(dir, CARD_FILE), CARD_HEADER + stringifyYaml(card), "utf8");
   writeFileSync(join(dir, RENDER_FILE), JSON.stringify(render, null, 2) + "\n", "utf8");
 
-  // The editable source: the three template files, verbatim.
+  // The editable source: the three template files. style.css has its relative
+  // bundled-font URL rewritten to an absolute file:// path so the project
+  // preview loads KineCJK instead of 404-ing (see rewriteRelativeUrlsToAbsolute).
   writeFileSync(join(templateDir, "template.html"), template.html, "utf8");
-  writeFileSync(join(templateDir, "style.css"), template.css, "utf8");
+  writeFileSync(join(templateDir, "style.css"), rewriteRelativeUrlsToAbsolute(template.css, template.dir), "utf8");
   writeFileSync(join(templateDir, "template.js"), template.js, "utf8");
 
   return dir;

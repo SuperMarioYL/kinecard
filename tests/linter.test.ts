@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CardSchema, resolveRenderConfig, RenderConfigSchema } from "../src/schema";
 import { estimateTextWidthPx, lintCard } from "../src/render";
+import { resolveBuiltin } from "../src/templates";
 
 test("estimateTextWidthPx grows with length and CJK is ~2x a latin char", () => {
   const px = 60;
@@ -88,4 +89,42 @@ test("a short subtitle triggers no safe-zone warnings", () => {
   const cfg = resolveRenderConfig(card);
   const warnings = lintCard(card, cfg);
   assert.equal(warnings.filter((w) => w.kind === "safe-zone").length, 0);
+});
+
+test("mono boundary-length text does NOT false-warn (template-aware 7.6/5.2/3.8 ratios)", () => {
+  // 16 CJK ideographs. At mono's 5.2vw body (≈56px) → 16*56=896 ≤ 950 safeWidth
+  // (fits, no warning). At the OLD fixed 5.8vw (≈63px) → 16*63=1008 > 950, a
+  // false-positive "overflows the safe zone" warning for text that actually fits.
+  // (safeWidth = 1080 * (1 - 0.06 - 0.06) = 950.4)
+  const text = "一二三四五六七八九十一二三四五六";
+  const card = CardSchema.parse({
+    title: "标题",
+    lines: [{ text }],
+    platform: "douyin",
+  });
+  const template = resolveBuiltin("mono");
+  const cfg = resolveRenderConfig(card, {}, template.timing);
+  const warnings = lintCard(card, cfg, template.fontRatios);
+  assert.equal(
+    warnings.filter((w) => w.kind === "safe-zone").length,
+    0,
+    "mono's 7.6/5.2/3.8 ratios should fit 16 CJK chars; the old 8.6/5.8/4.2 ratios false-warned",
+  );
+});
+
+test("the same boundary text DOES warn under the default minimal/spotlight ratios", () => {
+  // Proves the text is genuinely at the boundary — the mono ratios are what fix it.
+  const text = "一二三四五六七八九十一二三四五六";
+  const card = CardSchema.parse({
+    title: "标题",
+    lines: [{ text }],
+    platform: "douyin",
+  });
+  // No template timing / fontRatios → minimal/spotlight defaults (8.6/5.8/4.2).
+  const cfg = resolveRenderConfig(card);
+  const warnings = lintCard(card, cfg);
+  assert.ok(
+    warnings.filter((w) => w.kind === "safe-zone").length >= 1,
+    "the default 5.8vw body ratio should warn for 16 CJK chars (boundary text)",
+  );
 });

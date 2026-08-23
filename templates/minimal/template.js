@@ -8,6 +8,7 @@
  * No CSS transitions / no requestAnimationFrame inside seek — every pixel is a
  * deterministic function of t, which is what makes the render reproducible.
  */
+// kinecard:font-ratios title=8.6 body=5.8 subtitle=4.2  (vw; read by src/templates.ts for the safe-zone linter)
 (function () {
   "use strict";
 

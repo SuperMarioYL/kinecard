@@ -123,19 +123,25 @@ export function computeDurationMs(timing: Timing, lineCount: number): number {
 
 /**
  * Resolve a full RenderConfig from a card + optional overrides, using the
- * card's platform preset as the base. Overrides win over the preset.
+ * card's platform preset as the base. Overrides win over the preset. The
+ * template's designed timing (`templateTiming`, parsed from template.js) is
+ * used as the default pacing so a template ships its intended timing instead
+ * of TimingSchema defaults; an explicit `overrides.timing` still wins field
+ * by field, and `--fps`/`--preset` are unaffected.
  */
 export function resolveRenderConfig(
   card: Card,
   overrides: Partial<{ preset: Platform; fps: number; timing: Partial<Timing> }> = {},
+  templateTiming?: Partial<Timing>,
 ): RenderConfig {
   const preset = overrides.preset ?? card.platform;
   const p = PLATFORM_PRESETS[preset];
+  const timing = { ...templateTiming, ...overrides.timing };
   return RenderConfigSchema.parse({
     preset,
     fps: overrides.fps ?? p.fps,
     size: p.size,
-    timing: overrides.timing ?? {},
+    timing,
     safeZone: p.safeZone,
   });
 }
