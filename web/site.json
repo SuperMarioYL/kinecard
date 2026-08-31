@@ -3,6 +3,10 @@
   "name": "kinecard",
   "github": "https://github.com/SuperMarioYL/kinecard",
   "host": "kinecard.lei6393.com",
+  "meta": {
+    "content_version": "v0.4.0",
+    "generated_at": "2026-08-31T04:40:00Z"
+  },
   "lang": {
     "primary": "zh",
     "toggle": true
