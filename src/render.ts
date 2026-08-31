@@ -185,6 +185,13 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
     templateHtmlPath = proj.templateHtmlPath;
     outFile = opts.out ? abs(opts.out) : proj.outFile;
     projectDir = input;
+    // Thread the project's own template font ratios into the safe-zone linter,
+    // parity with the card-mode fix at src/render.ts:203 — without this a mono
+    // project re-render falls back to the minimal/spotlight ratios (8.6/5.8/4.2)
+    // and false-warns for boundary text that mono's 7.6/5.2/3.8 actually fits.
+    // A custom template without the font-ratios pragma yields undefined → the
+    // linter still falls back to its baked defaults.
+    lintFontRatios = resolveProjectTemplate(input).fontRatios;
     log(`re-rendering project ${proj.name} (${card.lines.length} lines, template/)`);
   } else {
     // --- card mode ---------------------------------------------------------

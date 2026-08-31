@@ -123,7 +123,11 @@ program
       const preset = assertPlatform(options.preset) ?? "douyin";
       const template = resolveBuiltin(options.template);
       const card: Card = { ...STARTER_CARD, platform: preset };
-      const renderCfg = resolveRenderConfig(card, { preset });
+      // Thread the template's designed timing as the render default so the
+      // scaffolded render.json carries the template's pacing (e.g. mono
+      // 1300/1600/900/1300) instead of TimingSchema defaults — parity with the
+      // card-mode render() fix at src/render.ts:202. --preset still overrides.
+      const renderCfg = resolveRenderConfig(card, { preset }, template.timing);
       writeProject({ dir, card, render: renderCfg, template });
       process.stdout.write(
         `✓ 已生成项目： ${dir}\n` +

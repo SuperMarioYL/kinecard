@@ -4,6 +4,34 @@ All notable changes to KineCard are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.4.0] - 2026-08-31
+
+Fix-driven minor release — two WYSIWYG / render-determinism defects that the
+v0.3.0 fix-driven minor closed for the card-mode path but missed in its two
+sibling paths. No new features; the deterministic HTML/CSS → 9:16 render
+pipeline is unchanged.
+
+### Fixed
+- `kinecard init <dir> -t <name>` now threads the template's designed timing
+  into the scaffolded project's `render.json`, so a scaffolded mono project
+  carries mono's 1300/1600/900/1300 pacing instead of the `TimingSchema`
+  defaults (1400/1300/600/1200). Before the fix the scaffolded
+  `template/template.js` ran at mono's pacing in the standalone browser preview
+  while a `kinecard render <project>/` re-render read the default-timed
+  `render.json` and ran at a different pace — a WYSIWYG break, the same defect
+  class the v0.3.0 card-mode `render()` fix closed. `--preset` and an explicit
+  `render.json` timing still override. (`src/cli.ts`)
+- The project re-render path now threads the project's own template font-size
+  ratios into the safe-zone linter. Before the fix a mono project re-render
+  (`kinecard render my-mono/`) left the linter on the minimal/spotlight ratios
+  (8.6/5.8/4.2) and emitted false-positive `overflows the safe zone` warnings
+  for boundary-length CJK text that mono's 7.6/5.2/3.8 ratios actually fit —
+  the same defect class the v0.3.0 card-mode linter fix closed. A custom
+  template without the `kinecard:font-ratios` pragma still falls back to the
+  baked defaults. (`src/render.ts`)
+
+[0.4.0]: https://github.com/SuperMarioYL/kinecard/releases/tag/v0.4.0
+
 ## [0.3.0] - 2026-08-23
 
 Fix-driven minor release — three WYSIWYG / render-determinism defects grounded
