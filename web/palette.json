@@ -1,0 +1,38 @@
+{
+  "mode": "auto",
+  "id": "59e656-6ae7aa-c9f6ac-d3ddc0a70d89",
+  "identity": "https://github.com/supermarioyl/kinecard",
+  "primary": "#59e656",
+  "secondary": "#6ae7aa",
+  "highlight": "#c9f6ac",
+  "dark": {
+    "bg": "#050c0d",
+    "panel": "#0c1717",
+    "code": "#0a1713",
+    "ink": "#f4fdee",
+    "muted": "#96b9a8",
+    "line": "#173c1d",
+    "primary": "#59e656",
+    "secondary": "#6ae7aa",
+    "highlight": "#c9f6ac",
+    "accent": "#59e656",
+    "buttonStart": "#348733",
+    "buttonEnd": "#3c8461",
+    "buttonText": "#ffffff"
+  },
+  "light": {
+    "bg": "#f9fef9",
+    "panel": "#f7fef7",
+    "code": "#f3fdf3",
+    "ink": "#132a1c",
+    "muted": "#567b6b",
+    "line": "#ccf7cb",
+    "primary": "#338331",
+    "secondary": "#3b805f",
+    "highlight": "#647a56",
+    "accent": "#338331",
+    "buttonStart": "#348733",
+    "buttonEnd": "#3c8461",
+    "buttonText": "#ffffff"
+  }
+}

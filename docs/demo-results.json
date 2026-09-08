@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "source_revision": "6678e1d2dbf6f5b650c0dacf66a19588594d49c3",
+  "scope": "Render an original one-card project through Chromium and ffmpeg at 360x640 and 4fps, with a 1400ms animation timeline, saving docs/demo-preview.mp4. Six encoded frames yield a 1500ms media duration; no platform upload or cross-machine byte-identity claim.",
+  "steps": [
+    {
+      "label": "Recorded run",
+      "body": "Render an original one-card project through Chromium and ffmpeg at 360x640 and 4fps, with a 1400ms animation timeline, saving docs/demo-preview.mp4. Six encoded frames yield a 1500ms media duration; no platform upload or cross-machine byte-identity claim.",
+      "command": "node examples/presentation-demo.cjs",
+      "output": "{\n  \"template\": \"minimal\",\n  \"size\": [\n    360,\n    640\n  ],\n  \"fps\": 4,\n  \"duration_ms\": 1400,\n  \"frames\": 6,\n  \"warnings\": 0,\n  \"video_bytes\": 7323\n}"
+    }
+  ]
+}

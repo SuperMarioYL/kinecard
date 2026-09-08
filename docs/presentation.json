@@ -1,0 +1,82 @@
+{
+  "name": "kinecard",
+  "tagline": "Keep the editable project behind each motion card.",
+  "architecture": {
+    "title": "How KineCard works",
+    "nodes": [
+      {
+        "title": "Card + render config",
+        "detail": "src/schema.ts"
+      },
+      {
+        "title": "Editable template",
+        "detail": "src/project.ts; templates"
+      },
+      {
+        "title": "Timed frame capture",
+        "detail": "src/frames.ts"
+      },
+      {
+        "title": "H.264 encoder",
+        "detail": "src/encode.ts"
+      }
+    ],
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  "process": {
+    "title": "From input to a useful result",
+    "steps": [
+      {
+        "title": "Create project",
+        "detail": "Original title and one line"
+      },
+      {
+        "title": "Capture frames",
+        "detail": "360x640, six timestamps"
+      },
+      {
+        "title": "Encode preview",
+        "detail": "H.264 MP4 artifact"
+      }
+    ],
+    "result": "Chromium and ffmpeg produce a six-frame MP4 with no linter warning for this card."
+  },
+  "integrations": {
+    "title": "Supported input and output routes",
+    "items": [
+      {
+        "title": "card.yaml",
+        "detail": "Title, lines, palette and platform"
+      },
+      {
+        "title": "HTML / CSS / JS",
+        "detail": "Editable template source"
+      },
+      {
+        "title": "Playwright Chromium",
+        "detail": "Time-addressed screenshots"
+      },
+      {
+        "title": "ffmpeg",
+        "detail": "PNG sequence to MP4"
+      },
+      {
+        "title": "Noto Sans SC subset",
+        "detail": "Bundled CJK font assets"
+      }
+    ]
+  }
+}

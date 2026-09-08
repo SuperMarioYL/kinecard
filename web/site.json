@@ -1,131 +1,219 @@
 {
-  "schema": 1,
+  "schema": 3,
   "name": "kinecard",
   "github": "https://github.com/SuperMarioYL/kinecard",
   "host": "kinecard.lei6393.com",
-  "meta": {
-    "content_version": "v0.4.0",
-    "generated_at": "2026-08-31T04:40:00Z"
-  },
+  "palette": "auto",
   "lang": {
-    "primary": "zh",
+    "primary": "en",
     "toggle": true
   },
-  "accent": [
-    "#FF375F",
-    "#D6304A",
-    "#FF8FA3"
-  ],
+  "meta": {
+    "visual_style": "neon-particle",
+    "demo_source": "docs/demo-results.json"
+  },
   "hero": {
-    "eyebrow": {
-      "zh": "一条命令 · 竖屏动效 · 可改可复用",
-      "en": "one command · vertical motion · editable & reusable"
-    },
     "headline": {
-      "zh": "把文案变成竖屏知识动效卡片\n一条命令，改一行即时重渲",
-      "en": "Turn text into vertical knowledge motion cards\none command, edit a line and re-render instantly"
+      "en": "Keep the editable project behind each motion card.",
+      "zh": "为每张动效卡片保留可编辑项目。"
     },
     "sub": {
-      "zh": "产物是能 diff、能单卡重渲的模板项目——不是剪映那种黑盒草稿。离线、无真人、无配音。",
-      "en": "The output is an editable, diff-able template project you can re-render card-by-card — not a black-box draft. Offline, faceless, no voiceover."
+      "en": "KineCard turns a title and text lines into a timed card animation, keeping card.yaml, render.json and the HTML/CSS/JS template available for later edits.",
+      "zh": "KineCard 将标题与文字要点转成定时卡片动画，并保留 card.yaml、render.json 与 HTML/CSS/JS 模板，供后续修改。"
     },
-    "command": "npx kinecard render examples/card.yaml -t minimal -o out.mp4",
-    "cta": {
-      "zh": "看 GitHub",
-      "en": "View on GitHub"
-    },
-    "ctaGithub": {
-      "zh": "源码与模板",
-      "en": "Source & templates"
-    },
-    "scroll": {
-      "zh": "为什么是 KineCard",
-      "en": "why KineCard"
-    }
+    "href": "#quickstart"
   },
   "advantages": [
     {
       "title": {
-        "zh": "一条命令出片",
-        "en": "One command to a finished clip"
+        "en": "Keep editable content",
+        "zh": "保留可编辑内容"
       },
       "body": {
-        "zh": "把一段结构化文案渲染成 9:16 竖屏动效卡片视频——标题淡入、正文逐行 kinetic 上浮、卡片间转场，全程离线。",
-        "en": "Render structured text into a 9:16 vertical motion-card video — title fades in, body lines animate in line-by-line, cards transition, all offline."
-      },
-      "chips": [
-        "› 9:16 竖屏",
-        "› 中文离线渲染",
-        "› 免系统安装"
-      ]
+        "en": "YAML and template sources remain available after export.",
+        "zh": "导出后仍可使用 YAML 与模板源。"
+      }
     },
     {
       "title": {
-        "zh": "改一行，重渲一张",
-        "en": "Edit a line, re-render one card"
+        "en": "Address animation by time",
+        "zh": "按时间定位动画"
       },
       "body": {
-        "zh": "--project 写出一个可编辑的模板项目；改 card.yaml 的一行文字或 accent 色，单卡重渲，画面即时更新。",
-        "en": "--project writes an editable template project; tweak one line or accent colour in card.yaml and re-render just that card — the picture updates instantly."
-      },
-      "chips": [
-        "› 可编辑模板",
-        "› 单卡重渲",
-        "› 可 diff 可复用"
-      ]
+        "en": "Templates expose a deterministic seek function.",
+        "zh": "模板暴露确定性 seek 函数。"
+      }
     },
     {
       "title": {
-        "zh": "不踩平台的坑",
-        "en": "Won't trip the platform rules"
+        "en": "Inspect layout warnings",
+        "zh": "检查布局警告"
       },
       "body": {
-        "zh": "抖音 / 视频号 / B站 预设自带画布、帧率与时长上限；字幕安全区超限或时长超标会主动告警，免得你被平台裁切。",
-        "en": "Douyin / Shipinhao / Bilibili presets carry the canvas, frame rate and duration cap; it warns you when a line spills past the subtitle safe zone or the clip runs over — so the platform never crops you."
+        "en": "The linter reports estimated overflow before capture.",
+        "zh": "检查器在截图前报告估计溢出。"
+      }
+    }
+  ],
+  "demo": {
+    "title": {
+      "en": "Run it on a complete example",
+      "zh": "运行完整示例"
+    },
+    "note": {
+      "en": "The included script creates a complete one-card project, renders six small preview frames and saves docs/demo-preview.mp4. The configured animation timeline is 1400ms; six frames at 4fps produce a 1500ms video.",
+      "zh": "随仓脚本创建完整单卡项目，渲染六帧小型预览并保存 docs/demo-preview.mp4。配置动画时间线为 1400ms；六帧按 4fps 编码得到 1500ms 视频。"
+    },
+    "source": "https://github.com/SuperMarioYL/kinecard/blob/main/docs/demo-results.json",
+    "steps": [
+      {
+        "label": "Recorded run",
+        "body": "Render an original one-card project through Chromium and ffmpeg at 360x640 and 4fps, with a 1400ms animation timeline, saving docs/demo-preview.mp4. Six encoded frames yield a 1500ms media duration; no platform upload or cross-machine byte-identity claim.",
+        "command": "node examples/presentation-demo.cjs",
+        "output": "{\n  \"template\": \"minimal\",\n  \"size\": [\n    360,\n    640\n  ],\n  \"fps\": 4,\n  \"duration_ms\": 1400,\n  \"frames\": 6,\n  \"warnings\": 0,\n  \"video_bytes\": 7323\n}",
+        "image": "/assets/presentation/demo-0-light.svg",
+        "imageDark": "/assets/presentation/demo-0-dark.svg"
+      }
+    ]
+  },
+  "quickstart": {
+    "title": {
+      "en": "Try it locally",
+      "zh": "本地上手"
+    },
+    "body": {
+      "en": "The included script creates a complete one-card project, renders six small preview frames and saves docs/demo-preview.mp4. The configured animation timeline is 1400ms; six frames at 4fps produce a 1500ms video.",
+      "zh": "随仓脚本创建完整单卡项目，渲染六帧小型预览并保存 docs/demo-preview.mp4。配置动画时间线为 1400ms；六帧按 4fps 编码得到 1500ms 视频。"
+    },
+    "steps": [
+      {
+        "title": {
+          "en": "Install from source",
+          "zh": "从源码安装"
+        },
+        "code": "git clone https://github.com/SuperMarioYL/kinecard.git\ncd kinecard\nnpm ci\nnpm run build\nnpx playwright install chromium"
       },
-      "chips": [
-        "› 抖音 / 视频号 / B站",
-        "› 字幕安全区告警",
-        "› 时长超限提醒"
-      ]
+      {
+        "title": {
+          "en": "Run the included example",
+          "zh": "运行随仓示例"
+        },
+        "code": "node examples/presentation-demo.cjs"
+      }
+    ]
+  },
+  "limitations": [
+    {
+      "en": "Rendering requires a compatible Playwright Chromium and ffmpeg. Installing dependencies or a browser may require network access.",
+      "zh": "渲染需要兼容的 Playwright Chromium 与 ffmpeg；安装依赖或浏览器可能需要联网。"
     },
     {
-      "title": {
-        "zh": "三套成套模板",
-        "en": "Three ready-made templates"
-      },
-      "body": {
-        "zh": "minimal 居中淡入、spotlight 聚光高亮、mono 等宽打字机——kinecard init 一键起手，kinecard list 看模板画廊。",
-        "en": "minimal centered fade-up, spotlight dark highlight, mono monospace typewriter — `kinecard init` scaffolds a starter, `kinecard list` browses the gallery."
-      },
-      "chips": [
-        "› minimal / spotlight / mono",
-        "› 一键 init 起手",
-        "› 模板画廊 list"
-      ]
+      "en": "Deterministic seek timestamps do not guarantee byte-identical video across operating systems, browser versions or encoders.",
+      "zh": "确定性 seek 时间戳不保证跨操作系统、浏览器或编码器生成逐字节相同视频。"
+    },
+    {
+      "en": "Safe-zone and duration checks use repository presets and estimated text widths, not a live platform specification or complete visual-layout validation.",
+      "zh": "安全区和时长检查使用仓库预设与估计文字宽度，不是实时平台规范或完整布局验证。"
+    },
+    {
+      "en": "The short demo uses 360x640 at 4fps to keep reproduction small; normal presets can render 1080x1920 at higher frame rates.",
+      "zh": "短示例使用 360x640、4fps 以降低复现成本；常规预设可使用 1080x1920 与更高帧率。"
     }
   ],
   "scene": {
-    "kind": "particle-field"
+    "kind": "neon-graph",
+    "fallback": "/assets/presentation/scene-dark.svg",
+    "fallbackLight": "/assets/presentation/scene-light.svg"
   },
-  "cta": {
-    "headline": {
-      "zh": "把你的知识点做成竖屏动效卡片",
-      "en": "Turn your knowledge into vertical motion cards"
+  "story": {
+    "intro": {
+      "title": {
+        "en": "A concrete task",
+        "zh": "从实际任务出发"
+      },
+      "body": {
+        "en": "A rendered video is difficult to revise without its source. A small project directory preserves the content, timing and template so one card can be changed and rendered again.",
+        "zh": "没有源文件的视频很难修订。小型项目目录保留内容、时序和模板，单张卡片便可修改后再次渲染。"
+      }
     },
-    "sub": {
-      "zh": "离线、无真人、无配音——一条命令开始。",
-      "en": "Offline, faceless, no voiceover — start with one command."
-    },
-    "button": {
-      "zh": "在 GitHub 上开始",
-      "en": "Start on GitHub"
-    }
-  },
-  "footer": {
-    "tag": {
-      "zh": "Apache-2.0 · 离线 · 无真人无配音",
-      "en": "Apache-2.0 · offline · faceless, no voiceover"
-    }
+    "sections": [
+      {
+        "title": {
+          "en": "Follow the operation",
+          "zh": "处理过程"
+        },
+        "body": {
+          "en": "The schema loader validates content and render settings. The linter estimates horizontal text overflow and duration against bundled presets. Playwright drives window.KineCard.seek(tMs) and captures frames; ffmpeg encodes those PNGs as H.264. Project export retains the editable source.",
+          "zh": "schema 加载器校验内容和渲染设置；检查器根据随仓预设估计水平文字溢出与时长。Playwright 调用 window.KineCard.seek(tMs) 并截图，ffmpeg 将 PNG 编码为 H.264；项目导出保留可编辑源。"
+        },
+        "image": {
+          "light": "/assets/presentation/process-light.svg",
+          "dark": "/assets/presentation/process-dark.svg",
+          "alt": {
+            "en": "Follow the operation",
+            "zh": "处理过程"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "How KineCard works",
+          "zh": "KineCard 的工作方式"
+        },
+        "body": {
+          "en": "The schema loader validates content and render settings. The linter estimates horizontal text overflow and duration against bundled presets. Playwright drives window.KineCard.seek(tMs) and captures frames; ffmpeg encodes those PNGs as H.264. Project export retains the editable source.",
+          "zh": "schema 加载器校验内容和渲染设置；检查器根据随仓预设估计水平文字溢出与时长。Playwright 调用 window.KineCard.seek(tMs) 并截图，ffmpeg 将 PNG 编码为 H.264；项目导出保留可编辑源。"
+        },
+        "image": {
+          "light": "/assets/presentation/architecture-light.svg",
+          "dark": "/assets/presentation/architecture-dark.svg",
+          "alt": {
+            "en": "How KineCard works",
+            "zh": "KineCard 的工作方式"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "Connect the pieces",
+          "zh": "输入与输出"
+        },
+        "body": {
+          "en": "The following routes are implemented in the source. Choose the input that matches your task and keep the resulting artifact with your project.",
+          "zh": "以下路径已有源码实现。按任务选择输入，并把生成的结果与项目一起保存。"
+        },
+        "image": {
+          "light": "/assets/presentation/integrations-light.svg",
+          "dark": "/assets/presentation/integrations-dark.svg",
+          "alt": {
+            "en": "Connect the pieces",
+            "zh": "输入与输出"
+          }
+        }
+      }
+    ],
+    "details": [
+      {
+        "title": {
+          "en": "Configuration",
+          "zh": "配置"
+        },
+        "body": {
+          "en": "card.yaml owns title, optional subtitle, lines, palette and platform. render.json owns fps, size, title/per-line/outro timing and fractional safe zones. Templates expose seek(tMs). Built-in templates are minimal, spotlight and mono; font assets retain their separate OFL license.",
+          "zh": "card.yaml 定义 title、可选 subtitle、lines、palette 与 platform。render.json 定义 fps、size、标题/逐行/结尾时序及比例安全区。模板暴露 seek(tMs)。内置模板为 minimal、spotlight 与 mono；字体保留独立 OFL 许可。"
+        }
+      },
+      {
+        "title": {
+          "en": "Further use",
+          "zh": "进一步使用"
+        },
+        "body": {
+          "en": "The CLI exposes the following operations. Commands after the example use your own paths or identifiers.",
+          "zh": "CLI 提供以下操作。示例之外的命令需要替换成你的文件路径或标识。"
+        },
+        "code": "node dist/cli.js render examples/card.yaml -t minimal -o out.mp4\nnode dist/cli.js init my-card -t spotlight\nnode dist/cli.js render my-card\nnode dist/cli.js render examples/card.yaml --project editable-card"
+      }
+    ]
   }
 }
