@@ -85,6 +85,24 @@ test("same input renders byte-identical output (deterministic)", opts, async () 
   assert.equal(sha(a), sha(b), "identical input should yield identical bytes");
 });
 
+test("--fps is honored on project re-render (v0.4.0 silently swallowed it)", opts, async () => {
+  const root = mkdtempSync(join(tmpdir(), "kc-e2e-fps-"));
+  const cardPath = join(root, "card.yaml");
+  writeFileSync(cardPath, TINY);
+  const projectDir = join(root, "my-card");
+
+  // Materialize a project whose render.json pins fps 30, then ask for 5.
+  await render({ input: cardPath, template: "minimal", project: projectDir, fps: 30 });
+  const r = await render({ input: projectDir, fps: 5 });
+  const expected = Math.max(1, Math.round((r.durationMs / 1000) * 5));
+  assert.equal(
+    r.frameCount,
+    expected,
+    `--fps must override the project's render.json on re-render (${r.frameCount} != ${expected})`,
+  );
+  assert.ok(r.frameCount < 30, "sanity: the override actually lowered the frame count");
+});
+
 test("--project writes an editable project; editing a line changes the re-render", opts, async () => {
   const root = mkdtempSync(join(tmpdir(), "kc-e2e-proj-"));
   const cardPath = join(root, "card.yaml");

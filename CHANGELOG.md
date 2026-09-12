@@ -4,6 +4,59 @@ All notable changes to KineCard are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.5.0] - 2026-09-13
+
+Minor release — four fixes from shipped-source review, plus the m3 remainder
+shipped as two new commands: the multi-card style-lock check and the auto
+sample gallery.
+
+### Fixed
+- The safe-zone linter now subtracts each template's body-line chrome (mono's
+  line number + caret ≈ 11.8vw, minimal/spotlight's accent bar ≈ 2.9vw,
+  declared via a new `kinecard:line-chrome` template pragma) from the usable
+  body width. Before the fix the linter lent that width to text, so
+  boundary-length lines passed lint silently and then wrapped to two rows in
+  the real render (measured on the actual templates: mono with the exact
+  16-CJK text the old tests called "fits" wrapped, with the row overflowing
+  its 950px client width) — a false negative, the mirror of the v0.3.0
+  false-positive calibration fix. The lint boundary now matches the measured
+  wrap boundary for all three templates. (`src/render.ts`, `src/templates.ts`,
+  `templates/*/template.js`)
+- `kinecard render <project>/ --fps N` / `--preset P` are now honored on
+  project re-render instead of being silently swallowed (reproduced: a
+  fps-30 project rendered with `--fps 5` produced 126 frames instead of 21,
+  with no warning). Like `-o`, the flags override the project's `render.json`
+  for that render only — the file on disk is untouched, so editing
+  `render.json` remains the way to change the project permanently.
+  (`src/render.ts`)
+- The npm package now ships `VERSION`, so an installed package reports the
+  real version instead of the silent `kinecard --version` → 0.0.0 fallback
+  (verified via `npm pack --dry-run`: the v0.4.0 tarball had no VERSION
+  entry, and the release workflow packs that tarball on every tag). A guard
+  test keeps the packaged surface in sync with the CLI's runtime reads.
+  (`package.json`, `tests/packaging.test.ts`)
+- The READMEs now name the actual license — Apache-2.0, matching the LICENSE
+  instrument, package.json and the site footer — instead of an unlabeled
+  link. No re-licensing: the Apache-2.0 LICENSE file is unchanged.
+  (`README.md`, `README.en.md`)
+
+### Added
+- `kinecard check <input>...` — the multi-card style-lock check: lints every
+  card with the same safe-zone/duration linter the renderer uses (threading
+  each project template's calibration), then compares platform, palette, and
+  — between projects — timing and byte-identical template sources, naming
+  exactly which input deviates. Exits non-zero when the set is inconsistent,
+  so it can gate a CI or pre-publish step. Inputs may be card.yaml files,
+  project directories, or a set directory (expanded to its project children).
+  (`src/check.ts`)
+- `kinecard gallery <card.yaml> [-o dir]` — renders the same card with every
+  built-in template into `<dir>/<template>.mp4` plus a `gallery.html` index
+  embedding each clip: one command turns a piece of copy into the full
+  side-by-side template showcase. Reuses the normal render pipeline per
+  template. (`src/gallery.ts`)
+
+[0.5.0]: https://github.com/SuperMarioYL/kinecard/releases/tag/v0.5.0
+
 ## [0.4.0] - 2026-08-31
 
 Fix-driven minor release — two WYSIWYG / render-determinism defects that the

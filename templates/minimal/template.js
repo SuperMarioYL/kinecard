@@ -9,6 +9,7 @@
  * deterministic function of t, which is what makes the render reproducible.
  */
 // kinecard:font-ratios title=8.6 body=5.8 subtitle=4.2  (vw; read by src/templates.ts for the safe-zone linter)
+// kinecard:line-chrome 2.9  (vw; the .kc-line::before accent bar 0.5vw + 2.4vw margin — read by src/templates.ts for the safe-zone linter)
 (function () {
   "use strict";
 

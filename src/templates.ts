@@ -14,7 +14,7 @@ import { join } from "node:path";
 import type { Timing } from "./schema";
 
 /** The three files every template must expose. */
-export interface Template {
+export interface Template extends TemplateMetrics {
   /** Resolved name (built-in id, or "project" for a project-local template). */
   name: string;
   /** Absolute directory the files were read from. */
@@ -28,12 +28,6 @@ export interface Template {
    * ships its intended pacing instead of TimingSchema defaults.
    */
   timing: Partial<Timing>;
-  /**
-   * Linter font-size ratios (fraction of canvas width), parsed from the
-   * `kinecard:font-ratios` pragma in template.js. `undefined` falls back to the
-   * minimal/spotlight ratios baked into lintCard.
-   */
-  fontRatios?: FontRatios;
 }
 
 /** Font-size ratios a template uses for title / body / subtitle, as a fraction of width. */
@@ -42,6 +36,23 @@ export interface FontRatios {
   body: number;
   subtitle: number;
 }
+
+/**
+ * Linter calibration a template declares about itself: the font-size ratios
+ * AND the body-line chrome width (in vw) the template renders around each
+ * body line's text. Both feed the safe-zone linter (src/render.ts lintCard).
+ */
+export interface TemplateMetrics {
+  fontRatios?: FontRatios;
+  lineChromeVw?: number;
+}
+
+/** Short blurbs for the built-in templates (`kinecard list` / the gallery). */
+export const TEMPLATE_META: Record<string, string> = {
+  minimal: "干净居中，逐行淡入上浮 — 通用知识卡片",
+  spotlight: "深色聚光，当前行高亮、其余压暗 — 强调型口播",
+  mono: "等宽编排，编号逐行打字机 — 极客/教程风",
+};
 
 const TEMPLATE_FILES = ["template.html", "style.css", "template.js"] as const;
 
@@ -103,6 +114,20 @@ export function parseTemplateFontRatios(js: string): FontRatios | undefined {
   };
 }
 
+/**
+ * Extract the body-line chrome width (vw) a template declares via its
+ * `// kinecard:line-chrome <vw>` pragma — the horizontal space the template
+ * renders around each body line's text INSIDE the safe zone (mono's line
+ * number + caret, minimal/spotlight's accent bar). The safe-zone linter
+ * subtracts it from the usable body width so a boundary-length line that
+ * would physically wrap does not pass lint silently. `undefined` when the
+ * pragma is absent (the linter then lends the full safe width to text).
+ */
+export function parseTemplateLineChrome(js: string): number | undefined {
+  const m = js.match(/kinecard:line-chrome\s+([\d.]+)/);
+  return m ? Number(m[1]) : undefined;
+}
+
 function readTemplateDir(name: string, dir: string): Template {
   for (const f of TEMPLATE_FILES) {
     if (!existsSync(join(dir, f))) {
@@ -118,6 +143,7 @@ function readTemplateDir(name: string, dir: string): Template {
     js,
     timing: parseTemplateTiming(js),
     fontRatios: parseTemplateFontRatios(js),
+    lineChromeVw: parseTemplateLineChrome(js),
   };
 }
 

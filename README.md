@@ -100,7 +100,11 @@ node dist/cli.js render examples/card.yaml -t minimal -o out.mp4
 node dist/cli.js init my-card -t spotlight
 node dist/cli.js render my-card
 node dist/cli.js render examples/card.yaml --project editable-card
+node dist/cli.js check my-set/                 # 检查一套卡片/项目是否共享一个风格锁
+node dist/cli.js gallery examples/card.yaml -o my-gallery   # 同一张卡片 × 全部内置模板
 ```
+
+`check` 对每张卡片运行与渲染相同的安全区/时长 lint，并跨卡比对平台、配色（项目间还比对时序与模板源码），不一致时指出具体偏差项并以非零码退出。`gallery` 复用完整渲染管线，把同一份文案用每个内置模板各渲一条 MP4 并生成 gallery.html 对比页。
 
 ## 配置
 
@@ -132,8 +136,8 @@ card.yaml 定义 title、可选 subtitle、lines、palette 与 platform。render
 - 安全区和时长检查使用仓库预设与估计文字宽度，不是实时平台规范或完整布局验证。
 - 短示例使用 360x640、4fps 以降低复现成本；常规预设可使用 1080x1920 与更高帧率。
 
-批量渲染与跨卡片一致性是后续方向；发布前应检查目标构图中的实际帧。
+跨卡片一致性检查（`kinecard check`）与样例画廊（`kinecard gallery`）已经提供；批量渲染仍是后续方向。发布前应检查目标构图中的实际帧。
 
 ## 许可与贡献
 
-许可见 [LICENSE](./LICENSE). 反馈问题时请提供最小输入、执行命令和实际输出。
+许可证为 [Apache-2.0](./LICENSE)；内置字体为 Noto Sans SC 子集，遵循 SIL OFL 1.1（仅适用于字体文件）。反馈问题时请提供最小输入、执行命令和实际输出。

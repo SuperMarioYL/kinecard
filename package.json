@@ -1,6 +1,6 @@
 {
   "name": "kinecard",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Render structured cards through editable HTML/CSS templates into vertical H.264 video with timed frames and layout warnings.",
   "keywords": [
     "kinetic-typography",
@@ -26,6 +26,7 @@
     "examples",
     "assets/fonts",
     "assets/demo.gif",
+    "VERSION",
     "README.md",
     "README.en.md",
     "LICENSE"

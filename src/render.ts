@@ -20,8 +20,7 @@ import {
   type Platform,
   type RenderConfig,
 } from "./schema";
-import { resolveBuiltin, resolveProjectTemplate } from "./templates";
-import type { FontRatios } from "./templates";
+import { resolveBuiltin, resolveProjectTemplate, type TemplateMetrics } from "./templates";
 import { captureFrames } from "./frames";
 import { encode } from "./encode";
 import { isProjectDir, loadProject, writeProject, OUTPUT_FILE } from "./project";
@@ -64,15 +63,19 @@ export function estimateTextWidthPx(text: string, fontPx: number): number {
  * width exceeds the horizontal 字幕安全区, and whether the total duration blows
  * the platform's max. Pure — unit tested.
  *
- * `fontRatios` lets the caller pass the active template's title/body/subtitle
- * font-size ratios (vw ÷ 100) so the estimate matches what the template
- * actually renders — e.g. mono (7.6/5.2/3.8) instead of the minimal/spotlight
- * (8.6/5.8/4.2) defaults baked in below. Omit it to use those defaults.
+ * `metrics` lets the caller pass the active template's calibration — its
+ * title/body/subtitle font-size ratios (vw ÷ 100) AND its body-line chrome
+ * width (`lineChromeVw`, vw) — so the estimate matches what the template
+ * actually renders. Body lines carry chrome inside the safe zone (mono's line
+ * number + caret, minimal/spotlight's accent bar); without subtracting it the
+ * linter lends that width to text and boundary-length lines wrap in the real
+ * render while passing lint (a false negative). Omit `metrics` to use the
+ * minimal/spotlight ratios baked in below with no chrome subtraction.
  */
 export function lintCard(
   card: Card,
   render: RenderConfig,
-  fontRatios?: Partial<FontRatios>,
+  metrics?: TemplateMetrics,
 ): Warning[] {
   const warnings: Warning[] = [];
   const [width] = render.size;
@@ -81,11 +84,17 @@ export function lintCard(
     title: TITLE_FONT_RATIO,
     body: BODY_FONT_RATIO,
     subtitle: SUBTITLE_FONT_RATIO,
-    ...fontRatios,
+    ...metrics?.fontRatios,
   };
   const bodyPx = Math.round(width * ratios.body);
   const titlePx = Math.round(width * ratios.title);
   const subtitlePx = Math.round(width * ratios.subtitle);
+  // Body lines render inside the template's line chrome; the linter must not
+  // lend that width to text. Title/subtitle carry no chrome.
+  const lineSafeWidth = Math.max(
+    1,
+    safeWidth - (metrics?.lineChromeVw !== undefined ? Math.round((width * metrics.lineChromeVw) / 100) : 0),
+  );
 
   const titleW = estimateTextWidthPx(card.title, titlePx);
   if (titleW > safeWidth) {
@@ -107,8 +116,8 @@ export function lintCard(
   }
   card.lines.forEach((line, i) => {
     const w = estimateTextWidthPx(line.text, bodyPx);
-    if (w > safeWidth) {
-      const over = Math.round(((w - safeWidth) / safeWidth) * 100);
+    if (w > lineSafeWidth) {
+      const over = Math.round(((w - lineSafeWidth) / lineSafeWidth) * 100);
       warnings.push({
         kind: "safe-zone",
         message: `line ${i + 1} overflows the safe zone by ~${over}% — split it: "${line.text}"`,
@@ -161,6 +170,29 @@ function looksLikeDir(p: string): boolean {
   return existsSync(p) && statSync(p).isDirectory();
 }
 
+/**
+ * Apply the per-render CLI flag overrides (`--fps`, `--preset`) to a loaded
+ * project's render.json config. Both flags are documented for project-dir
+ * inputs (README 用法 / `kinecard render --help`), so swallowing them silently
+ * is a contract break; like `-o`, they override for THIS render only — the
+ * project's render.json on disk is untouched. `--preset` swaps in the
+ * platform preset's canvas + safe zone (the same fields a fresh resolve would
+ * produce); everything else (timing, a customized fps/size) is preserved
+ * unless explicitly overridden.
+ */
+export function applyProjectRenderOverrides(
+  cfg: RenderConfig,
+  opts: { preset?: Platform; fps?: number },
+): RenderConfig {
+  let out = cfg;
+  if (opts.preset) {
+    const p = PLATFORM_PRESETS[opts.preset];
+    out = { ...out, preset: opts.preset, size: p.size, safeZone: p.safeZone };
+  }
+  if (opts.fps) out = { ...out, fps: opts.fps };
+  return out;
+}
+
 function abs(p: string): string {
   return isAbsolute(p) ? p : resolve(process.cwd(), p);
 }
@@ -174,24 +206,42 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
   let templateHtmlPath: string;
   let outFile: string;
   let projectDir: string | undefined;
-  /** Active template's font-size ratios for the safe-zone linter; undefined → defaults. */
-  let lintFontRatios: Partial<FontRatios> | undefined;
+  /** Active template's linter calibration; undefined → baked-in defaults. */
+  let lintMetrics: TemplateMetrics | undefined;
 
   if (looksLikeDir(input) && isProjectDir(input)) {
     // --- project re-render mode -------------------------------------------
     const proj = loadProject(input);
     card = proj.card;
-    renderCfg = proj.render;
+    // --fps / --preset are documented for project-dir inputs too (README 用法);
+    // like -o they override the project's render.json for THIS render only —
+    // the file on disk is untouched (edit render.json to change it permanently).
+    renderCfg = applyProjectRenderOverrides(proj.render, {
+      preset: opts.preset,
+      fps: opts.fps,
+    });
+    if (opts.preset || opts.fps) {
+      const parts = [
+        opts.preset ? `preset=${opts.preset}` : null,
+        opts.fps ? `fps=${opts.fps}` : null,
+      ].filter((s): s is string => s !== null);
+      log(`render override for this render only (${parts.join(", ")}) — edit ${join(input, "render.json")} to persist`);
+    }
     templateHtmlPath = proj.templateHtmlPath;
     outFile = opts.out ? abs(opts.out) : proj.outFile;
     projectDir = input;
-    // Thread the project's own template font ratios into the safe-zone linter,
-    // parity with the card-mode fix at src/render.ts:203 — without this a mono
-    // project re-render falls back to the minimal/spotlight ratios (8.6/5.8/4.2)
-    // and false-warns for boundary text that mono's 7.6/5.2/3.8 actually fits.
-    // A custom template without the font-ratios pragma yields undefined → the
-    // linter still falls back to its baked defaults.
-    lintFontRatios = resolveProjectTemplate(input).fontRatios;
+    // Thread the project's own template calibration into the safe-zone linter,
+    // parity with the card-mode branch below — without this a mono project
+    // re-render falls back to the minimal/spotlight ratios (8.6/5.8/4.2) with
+    // no chrome subtraction and false-warns for boundary text that mono's
+    // 7.6/5.2/3.8 + 11.8vw chrome actually fits. A custom template without the
+    // pragmas yields undefined values → the linter still falls back to its
+    // baked defaults.
+    const projTemplate = resolveProjectTemplate(input);
+    lintMetrics = {
+      fontRatios: projTemplate.fontRatios,
+      lineChromeVw: projTemplate.lineChromeVw,
+    };
     log(`re-rendering project ${proj.name} (${card.lines.length} lines, template/)`);
   } else {
     // --- card mode ---------------------------------------------------------
@@ -207,7 +257,10 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
     // and render.json carry the template's pacing (mono 1300/1600/900/1300,
     // spotlight 1400/1500/640/1200) rather than TimingSchema defaults.
     renderCfg = resolveRenderConfig(card, { preset: opts.preset, fps: opts.fps }, template.timing);
-    lintFontRatios = template.fontRatios;
+    lintMetrics = {
+      fontRatios: template.fontRatios,
+      lineChromeVw: template.lineChromeVw,
+    };
     if (opts.project) {
       // Materialize the editable project, then render FROM the written source.
       projectDir = abs(opts.project);
@@ -226,7 +279,7 @@ export async function render(opts: RenderOptions): Promise<RenderResult> {
   const durationMs = computeDurationMs(renderCfg.timing, card.lines.length);
 
   // Linter — always surface warnings; they are the whole point of platform-fit.
-  const warnings = lintCard(card, renderCfg, lintFontRatios);
+  const warnings = lintCard(card, renderCfg, lintMetrics);
   for (const w of warnings) log(`⚠ ${w.message}`);
 
   // Ensure the output directory exists.

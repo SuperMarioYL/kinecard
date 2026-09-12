@@ -57,40 +57,48 @@ test("fix-init-ignores-template-timing: `kinecard init -t spotlight` writes spot
   });
 });
 
-test("fix-project-rerender-lint-font-ratios: a mono project's template carries mono ratios (no false safe-zone warn)", () => {
+test("fix-project-rerender-lint-font-ratios: a mono project's template carries mono calibration (no false warn for text that fits)", () => {
   // The project re-render fix (src/render.ts) calls resolveProjectTemplate(input)
-  // and threads .fontRatios into lintCard. This guards the contract that path
-  // relies on: a written project's own template carries the right ratios, so
-  // lintCard with those ratios does NOT false-warn for boundary text that fits.
-  // Before the fix the project branch left lintFontRatios undefined → lintCard
-  // used the minimal/spotlight defaults (8.6/5.8/4.2) → false-positive warnings
-  // for mono text that actually fits (same class as the v0.3.0 card-mode fix).
+  // and threads its calibration into lintCard. This guards the contract that
+  // path relies on: a written project's own template carries the right ratios
+  // AND line chrome (the pragmas are copied verbatim into
+  // <project>/template/template.js by writeProject), so lintCard with that
+  // calibration does NOT false-warn for boundary text that fits — and DOES warn
+  // for text that physically wraps. Boundaries are measured on the real template:
+  // mono's row chrome (num + caret ≈ 11.8vw) leaves ~823px of the 950.4px safe
+  // width; 14 CJK chars (786px) fit, 16 (898px) wrap to two rows. v0.4.0
+  // asserted the opposite for the 16-char case — the chrome-blind false
+  // negative closed in v0.5.0.
   const dir = join(mkdtempSync(join(tmpdir(), "kc-rerend-reg-")), "mono-proj");
-  // 16 CJK ideographs — fits mono's 5.2vw body (≈56px → 896 ≤ 950 safeWidth)
-  // but overflows the default 5.8vw (≈63px → 1008 > 950).
-  const text = "一二三四五六七八九十一二三四五六";
+  const text = "一二三四五六七八九十一二三四";
   const card = CardSchema.parse({ title: "标题", lines: [{ text }], platform: "douyin" });
   const template = resolveBuiltin("mono");
   const renderCfg = resolveRenderConfig(card, { preset: "douyin" }, template.timing);
   writeProject({ dir, card, render: renderCfg, template });
 
-  // The project's own template must expose mono's ratios (the pragma is copied
-  // verbatim into <project>/template/template.js by writeProject).
+  // The project's own template must expose mono's calibration (the pragmas are
+  // copied verbatim into <project>/template/template.js by writeProject).
   const projTemplate = resolveProjectTemplate(dir);
   assert.deepEqual(projTemplate.fontRatios, { title: 0.076, body: 0.052, subtitle: 0.038 });
+  assert.equal(projTemplate.lineChromeVw, 11.8);
 
-  // lintCard with the project template's ratios → no false safe-zone warning.
-  const withRatios = lintCard(card, renderCfg, projTemplate.fontRatios);
+  // lintCard with the project template's calibration → no false safe-zone warning.
+  const withMetrics = lintCard(card, renderCfg, projTemplate);
   assert.equal(
-    withRatios.filter((w) => w.kind === "safe-zone").length,
+    withMetrics.filter((w) => w.kind === "safe-zone").length,
     0,
-    "mono project ratios must not false-warn for 16 CJK chars that fit",
+    "mono project calibration must not false-warn for 14 CJK chars that fit",
   );
-  // Prove the text is genuinely at the boundary: the default ratios DO warn
-  // (the bug) — so the project ratios are what silence it, not a short text.
-  const withDefaults = lintCard(card, renderCfg);
+  // Prove the chrome is genuinely threaded: the same 16-CJK text that v0.4.0
+  // let pass silently (mono ratios alone: 898 ≤ 950) must now warn, because the
+  // chrome-adjusted width (~823px) is what the template actually renders into.
+  const longCard = CardSchema.parse({
+    title: "标题",
+    lines: [{ text: "一二三四五六七八九十一二三四五六" }],
+    platform: "douyin",
+  });
   assert.ok(
-    withDefaults.filter((w) => w.kind === "safe-zone").length >= 1,
-    "the default ratios must warn for the same boundary text",
+    lintCard(longCard, renderCfg, projTemplate).filter((w) => w.kind === "safe-zone").length >= 1,
+    "16 CJK chars physically wrap in mono (measured) — the project calibration must warn",
   );
 });

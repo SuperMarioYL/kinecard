@@ -100,7 +100,11 @@ node dist/cli.js render examples/card.yaml -t minimal -o out.mp4
 node dist/cli.js init my-card -t spotlight
 node dist/cli.js render my-card
 node dist/cli.js render examples/card.yaml --project editable-card
+node dist/cli.js check my-set/                 # multi-card style-lock check
+node dist/cli.js gallery examples/card.yaml -o my-gallery   # one card x every template
 ```
+
+`check` runs the same safe-zone/duration lint the renderer uses on every card, then compares platform and palette across the set (plus timing and template sources between projects), naming exactly which input deviates and exiting non-zero on inconsistency. `gallery` reuses the full render pipeline to render the same copy once per built-in template and writes a gallery.html comparison page.
 
 ## Configuration
 
@@ -132,8 +136,8 @@ The following routes are implemented in the source. Choose the input that matche
 - Safe-zone and duration checks use repository presets and estimated text widths, not a live platform specification or complete visual-layout validation.
 - The short demo uses 360x640 at 4fps to keep reproduction small; normal presets can render 1080x1920 at higher frame rates.
 
-Batch rendering and cross-card consistency are future directions. Inspect generated frames in the target composition before publishing.
+Cross-card consistency checking (`kinecard check`) and the sample gallery (`kinecard gallery`) are available; batch rendering remains a future direction. Inspect generated frames in the target composition before publishing.
 
 ## License and contributions
 
-See [LICENSE](./LICENSE). When reporting an issue, include a minimal input, the command, and the observed output.
+Licensed under [Apache-2.0](./LICENSE); the bundled font is a Noto Sans SC subset under SIL OFL 1.1 (font files only). When reporting an issue, include a minimal input, the command, and the observed output.

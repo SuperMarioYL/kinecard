@@ -91,25 +91,47 @@ test("a short subtitle triggers no safe-zone warnings", () => {
   assert.equal(warnings.filter((w) => w.kind === "safe-zone").length, 0);
 });
 
-test("mono boundary-length text does NOT false-warn (template-aware 7.6/5.2/3.8 ratios)", () => {
-  // 16 CJK ideographs. At mono's 5.2vw body (≈56px) → 16*56=896 ≤ 950 safeWidth
-  // (fits, no warning). At the OLD fixed 5.8vw (≈63px) → 16*63=1008 > 950, a
-  // false-positive "overflows the safe zone" warning for text that actually fits.
-  // (safeWidth = 1080 * (1 - 0.06 - 0.06) = 950.4)
-  const text = "一二三四五六七八九十一二三四五六";
-  const card = CardSchema.parse({
-    title: "标题",
-    lines: [{ text }],
-    platform: "douyin",
-  });
+test("mono boundary-length text matches the measured wrap boundary (ratios + line chrome)", () => {
+  // Measured on the real mono template (Playwright, 1080x1920 douyin): the body
+  // row's chrome (.kc-num two digits + 2.6vw gap + .kc-caret ≈ 127px ≈ 11.8vw)
+  // leaves ~823px of the 950.4px safe width for text; 14 CJK chars (786px) fit
+  // on one row, 15+ wrap to two. The linter must agree — v0.4.0 lent the chrome
+  // width to text and stayed silent for lines that physically wrapped (a false
+  // negative, the mirror of the old false-positive the v0.3.0 ratios fixed).
+  const fits = "一二三四五六七八九十一二三四";
+  const wraps = "一二三四五六七八九十一二三四五六";
   const template = resolveBuiltin("mono");
-  const cfg = resolveRenderConfig(card, {}, template.timing);
-  const warnings = lintCard(card, cfg, template.fontRatios);
+  const check = (text: string) => {
+    const card = CardSchema.parse({ title: "标题", lines: [{ text }], platform: "douyin" });
+    const cfg = resolveRenderConfig(card, {}, template.timing);
+    return lintCard(card, cfg, template).filter((w) => w.kind === "safe-zone");
+  };
   assert.equal(
-    warnings.filter((w) => w.kind === "safe-zone").length,
+    check(fits).length,
     0,
-    "mono's 7.6/5.2/3.8 ratios should fit 16 CJK chars; the old 8.6/5.8/4.2 ratios false-warned",
+    "14 CJK chars fit mono's chrome-adjusted width — no warning",
   );
+  assert.ok(
+    check(wraps).length >= 1,
+    "16 CJK chars physically wrap in mono (measured 2 rows) — must warn; ratios alone would stay silent (898 ≤ 950), so this also proves the chrome is threaded",
+  );
+});
+
+test("minimal boundary-length text matches the measured wrap boundary (accent-bar chrome)", () => {
+  // Measured on the real minimal template: the .kc-line::before accent bar
+  // (0.5vw + 2.4vw margin ≈ 31px ≈ 2.9vw) leaves ~919px of the 950.4px safe
+  // width; 14 CJK chars fit on one row, 15 wrap to two. v0.4.0 stayed silent
+  // for the 15-char case (939.6 ≤ 950.4 — chrome-blind).
+  const fits = "一二三四五六七八九十一二三四";
+  const wraps = "一二三四五六七八九十一二三四五";
+  const template = resolveBuiltin("minimal");
+  const check = (text: string) => {
+    const card = CardSchema.parse({ title: "标题", lines: [{ text }], platform: "douyin" });
+    const cfg = resolveRenderConfig(card, {}, template.timing);
+    return lintCard(card, cfg, template).filter((w) => w.kind === "safe-zone");
+  };
+  assert.equal(check(fits).length, 0, "14 CJK chars fit minimal's chrome-adjusted width");
+  assert.ok(check(wraps).length >= 1, "15 CJK chars physically wrap in minimal (measured 2 rows) — must warn");
 });
 
 test("the same boundary text DOES warn under the default minimal/spotlight ratios", () => {

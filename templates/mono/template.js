@@ -4,6 +4,7 @@
  * plus a caret whose blink is a deterministic function of t (no wall clock).
  */
 // kinecard:font-ratios title=7.6 body=5.2 subtitle=3.8  (vw; read by src/templates.ts for the safe-zone linter)
+// kinecard:line-chrome 11.8  (vw; .kc-num two digits + 2.6vw gap + .kc-caret 0.5em — read by src/templates.ts for the safe-zone linter)
 (function () {
   "use strict";
 
