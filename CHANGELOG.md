@@ -4,6 +4,38 @@ All notable changes to KineCard are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.6.0] - 2026-10-17
+
+Fix-driven minor release — three defects from shipped-source review. No new
+features; the deterministic HTML/CSS → 9:16 render pipeline is unchanged.
+
+### Fixed
+- Spotlight's declared linter calibration now matches its real geometry:
+  `subtitle=4` (style.css renders `.kc-sub` at 4vw, not the declared 4.2) and
+  `line-chrome 4.5` (`.kc-line` reserves padding-left 4.5vw; the accent bar is
+  `position: absolute` at left:0 and consumes no flow width — the old 2.9 was
+  minimal's in-flow-bar number, not spotlight's). Before the fix the linter
+  overestimated spotlight subtitle width by 5% and lent 1.6vw ≈ 17px of the
+  safe width to body text that the template does not render into, so
+  boundary-length lines passed lint and then wrapped — the false-negative
+  class the v0.5.0 line-chrome fix closed for mono/minimal but measured wrong
+  for spotlight. A new calibration test parses each template's style.css and
+  fails when a pragma drifts from the CSS, so the two surfaces cannot drift
+  apart again. (`templates/spotlight/template.js`,
+  `tests/template-calibration.test.ts`)
+- `--fps` is validated in the CLI parser (integer 1–60, the same bounds
+  render.json enforces): `--fps abc` now exits non-zero with a readable
+  commander error before any render work, in card AND project mode, instead
+  of a raw ZodError dump (card mode) or a silent swallow that rendered at the
+  project's own fps with exit 0 (project mode, reproduced); `--fps -5` no
+  longer reaches the frame engine. (`src/cli.ts`, `tests/cli-fps.test.ts`)
+- `gallery.html` references its videos relatively (`./<template>.mp4`)
+  instead of embedding the invoking user's absolute local paths, so the
+  generated index stays shareable and keeps working when the gallery
+  directory is moved. (`src/gallery.ts`, `tests/gallery.test.ts`)
+
+[0.6.0]: https://github.com/SuperMarioYL/kinecard/releases/tag/v0.6.0
+
 ## [0.5.0] - 2026-09-13
 
 Minor release — four fixes from shipped-source review, plus the m3 remainder

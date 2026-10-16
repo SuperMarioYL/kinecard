@@ -101,6 +101,8 @@ test("each built-in template exposes its linter font-ratios", () => {
   assert.deepEqual(resolveBuiltin("spotlight").fontRatios, {
     title: 0.086,
     body: 0.058,
-    subtitle: 0.042,
+    // v0.6.0: spotlight's .kc-sub renders at 4vw (style.css), not the 4.2
+    // previously copied from minimal — measured in Chromium (43.2px @1080).
+    subtitle: 0.04,
   });
 });

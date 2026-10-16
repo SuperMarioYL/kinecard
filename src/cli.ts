@@ -8,7 +8,7 @@
  *   kinecard check <input...>           multi-card style-lock check + lint
  *   kinecard gallery <card.yaml>        render one card with every template
  */
-import { Command } from "commander";
+import { Command, InvalidArgumentError } from "commander";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { render } from "./render";
@@ -51,6 +51,22 @@ function assertPlatform(v: string | undefined): Platform | undefined {
   return v as Platform;
 }
 
+/**
+ * Validate `--fps` at the CLI boundary: a bare parseInt accepted "abc" (→ NaN)
+ * which card mode surfaced as a raw ZodError dump and project mode silently
+ * swallowed (applyProjectRenderOverrides guards on truthiness), and "‑5" ran
+ * unvalidated into the frame engine. Reject here — before any render work —
+ * with commander's own readable error. Bounds mirror RenderConfigSchema.fps
+ * (src/schema.ts: integer 1..60).
+ */
+export function parseFps(v: string): number {
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 1 || n > 60) {
+    throw new InvalidArgumentError(`fps must be an integer between 1 and 60, got "${v}"`);
+  }
+  return n;
+}
+
 const program = new Command();
 program
   .name("kinecard")
@@ -65,7 +81,7 @@ program
   .option("-o, --out <file>", "输出 .mp4 路径")
   .option("--project <dir>", "同时把可编辑的源项目写入 <dir>")
   .option("--preset <platform>", `平台预设：${PLATFORMS.join("|")}`)
-  .option("--fps <n>", "帧率", (v) => parseInt(v, 10))
+  .option("--fps <n>", "帧率", parseFps)
   .option("--keep-frames", "保留中间 PNG 帧（调试）")
   .action(async (input: string, options) => {
     try {
@@ -176,7 +192,7 @@ program
   .description("用全部内置模板渲染同一张卡片，生成可对比的样例画廊")
   .argument("<card>", "card.yaml 文件")
   .option("-o, --out <dir>", "输出目录", "gallery")
-  .option("--fps <n>", "帧率", (v) => parseInt(v, 10))
+  .option("--fps <n>", "帧率", parseFps)
   .action(async (card: string, options) => {
     try {
       const t0 = Date.now();
@@ -196,4 +212,8 @@ program
     }
   });
 
-program.parseAsync(process.argv).catch(fail);
+// Run the CLI only when executed directly (bin / tsx src/cli.ts), so tests can
+// import the pure helpers (parseFps) without triggering argument parsing.
+if (require.main === module) {
+  program.parseAsync(process.argv).catch(fail);
+}

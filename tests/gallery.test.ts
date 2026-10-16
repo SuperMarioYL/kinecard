@@ -26,11 +26,13 @@ const opts = { skip: SKIP ? skipReason : false };
 
 const TINY = "title: 单元测试\nlines:\n  - text: 一条要点\nplatform: douyin\n";
 
-test("galleryHtml embeds one video per template with name and blurb", () => {
+test("galleryHtml embeds one relative video per template with name and blurb", () => {
   const entries = listBuiltinTemplates().map((t) => ({ template: t, outFile: `${t}.mp4` }));
   const html = galleryHtml(entries, "标题<注入>");
   for (const e of entries) {
-    assert.ok(html.includes(`src="${e.outFile}"`), `must embed ${e.outFile}`);
+    // Relative reference — the MP4s always sit next to gallery.html; an
+    // absolute path would leak the local filesystem and break when moved.
+    assert.ok(html.includes(`src="./${e.template}.mp4"`), `must embed ./${e.template}.mp4`);
     assert.ok(html.includes(`<strong>${e.template}</strong>`), `must name ${e.template}`);
     const blurb = TEMPLATE_META[e.template] ?? "";
     if (blurb) assert.ok(html.includes(blurb), `must carry ${e.template}'s blurb`);
@@ -38,6 +40,18 @@ test("galleryHtml embeds one video per template with name and blurb", () => {
   // The card title is HTML-escaped.
   assert.ok(html.includes("标题&lt;注入&gt;"));
   assert.ok(!html.includes("标题<注入>"));
+});
+
+test("galleryHtml never embeds an absolute local path, even for absolute outDir entries", () => {
+  // v0.6.0 regression: entries carried the resolved-absolute outDir join, so a
+  // gallery.html generated under the invoking user's home embedded absolute
+  // home-directory video srcs — leaking the local layout and 404-ing the
+  // moment the directory moved.
+  const abs = join(mkdtempSync(join(tmpdir(), "kc-gal-")), "minimal.mp4");
+  const html = galleryHtml([{ template: "minimal", outFile: abs }], "标题");
+  assert.ok(html.includes('src="./minimal.mp4"'), "must embed the relative reference");
+  assert.ok(!html.includes(`src="${abs}"`), "must not embed the absolute path");
+  assert.ok(!/src="\//.test(html), "no absolute-path video srcs");
 });
 
 test("renderGallery renders the card with every built-in template + writes the index", opts, async () => {

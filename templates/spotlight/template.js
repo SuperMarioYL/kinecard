@@ -3,8 +3,8 @@
  * Distinct look: dark stage, the active line is bright while past/future lines
  * are dimmed, each line slides in from the left with an accent bar.
  */
-// kinecard:font-ratios title=8.6 body=5.8 subtitle=4.2  (vw; read by src/templates.ts for the safe-zone linter)
-// kinecard:line-chrome 2.9  (vw; the .kc-line::before accent bar 0.5vw + 2.4vw margin — read by src/templates.ts for the safe-zone linter)
+// kinecard:font-ratios title=8.6 body=5.8 subtitle=4  (vw; read by src/templates.ts for the safe-zone linter — must match style.css: .kc-title 8.6, .kc-line 5.8, .kc-sub 4)
+// kinecard:line-chrome 4.5  (vw; .kc-line's padding-left — the ::before bar is position:absolute at left:0, so text starts at the padding — read by src/templates.ts for the safe-zone linter)
 (function () {
   "use strict";
 

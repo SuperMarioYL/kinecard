@@ -9,7 +9,7 @@
  * from the normal pipeline.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, resolve } from "node:path";
+import { basename, isAbsolute, join, resolve } from "node:path";
 import { render, type Warning } from "./render";
 import { listBuiltinTemplates, TEMPLATE_META } from "./templates";
 import { loadCard } from "./schema";
@@ -42,9 +42,13 @@ export function galleryHtml(entries: GalleryEntry[], cardTitle: string): string 
   const figures = entries
     .map((e) => {
       const blurb = TEMPLATE_META[e.template] ?? "";
+      // Relative reference: every MP4 sits next to gallery.html by construction,
+      // and an absolute path would leak the invoking user's filesystem layout
+      // into a shareable artifact (and 404 the moment the directory moves).
+      const src = `./${basename(e.outFile)}`;
       return (
         `    <figure>\n` +
-        `      <video src="${escapeHtml(e.outFile)}" controls loop muted playsinline></video>\n` +
+        `      <video src="${escapeHtml(src)}" controls loop muted playsinline></video>\n` +
         `      <figcaption><strong>${escapeHtml(e.template)}</strong>${blurb ? " — " + escapeHtml(blurb) : ""}</figcaption>\n` +
         `    </figure>`
       );
