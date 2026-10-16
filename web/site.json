@@ -11,7 +11,7 @@
   "meta": {
     "visual_style": "neon-particle",
     "demo_source": "docs/demo-results.json",
-    "content_version": "v0.5.0"
+    "content_version": "v0.6.0"
   },
   "hero": {
     "headline": {
@@ -51,8 +51,8 @@
         "zh": "检查布局警告"
       },
       "body": {
-        "en": "The linter reports estimated overflow before capture.",
-        "zh": "检查器在截图前报告估计溢出。"
+        "en": "The linter reports estimated overflow before capture, calibrated to each template's measured font sizes and line chrome.",
+        "zh": "检查器在截图前报告估计溢出，并按各模板实测的字号与行内装饰校准。"
       }
     }
   ],
@@ -113,8 +113,8 @@
       "zh": "确定性 seek 时间戳不保证跨操作系统、浏览器或编码器生成逐字节相同视频。"
     },
     {
-      "en": "Safe-zone and duration checks use repository presets and estimated text widths, not a live platform specification or complete visual-layout validation.",
-      "zh": "安全区和时长检查使用仓库预设与估计文字宽度，不是实时平台规范或完整布局验证。"
+      "en": "Safe-zone and duration checks use repository presets and estimated text widths, calibrated to the bundled templates' measured geometry — not a live platform specification or complete visual-layout validation.",
+      "zh": "安全区和时长检查使用仓库预设与估计文字宽度，并按内置模板的实测几何校准——不是实时平台规范或完整布局验证。"
     },
     {
       "en": "The short demo uses 360x640 at 4fps to keep reproduction small; normal presets can render 1080x1920 at higher frame rates.",
@@ -225,7 +225,7 @@
           "en": "The CLI exposes the following operations. Commands after the example use your own paths or identifiers.",
           "zh": "CLI 提供以下操作。示例之外的命令需要替换成你的文件路径或标识。"
         },
-        "code": "node dist/cli.js render examples/card.yaml -t minimal -o out.mp4\nnode dist/cli.js init my-card -t spotlight\nnode dist/cli.js render my-card\nnode dist/cli.js render examples/card.yaml --project editable-card"
+        "code": "node dist/cli.js render examples/card.yaml -t minimal -o out.mp4\nnode dist/cli.js init my-card -t spotlight\nnode dist/cli.js render my-card\nnode dist/cli.js render examples/card.yaml --project editable-card\nnode dist/cli.js check my-set/\nnode dist/cli.js gallery examples/card.yaml -o my-gallery"
       }
     ]
   }
