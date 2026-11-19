@@ -11,7 +11,8 @@
   "meta": {
     "visual_style": "neon-particle",
     "demo_source": "docs/demo-results.json",
-    "content_version": "v0.6.0"
+    "content_version": "v0.7.0",
+    "generated_at": "2026-11-20"
   },
   "hero": {
     "headline": {
@@ -31,8 +32,8 @@
         "zh": "保留可编辑内容"
       },
       "body": {
-        "en": "YAML and template sources remain available after export.",
-        "zh": "导出后仍可使用 YAML 与模板源。"
+        "en": "YAML and template sources remain available after export. Scaffolding into an existing project is refused, so the edits you make there stay yours.",
+        "zh": "导出后仍可使用 YAML 与模板源。再次向已有项目写入会被拒绝，你改过的地方不会被覆盖。"
       }
     },
     {
@@ -212,8 +213,8 @@
           "zh": "配置"
         },
         "body": {
-          "en": "card.yaml owns title, optional subtitle, lines, palette and platform. render.json owns fps, size, title/per-line/outro timing and fractional safe zones. Templates expose seek(tMs). Built-in templates are minimal, spotlight and mono; font assets retain their separate OFL license.",
-          "zh": "card.yaml 定义 title、可选 subtitle、lines、palette 与 platform。render.json 定义 fps、size、标题/逐行/结尾时序及比例安全区。模板暴露 seek(tMs)。内置模板为 minimal、spotlight 与 mono；字体保留独立 OFL 许可。"
+          "en": "card.yaml owns title, optional subtitle, lines, palette and platform. render.json owns fps, size, title/per-line/outro timing and fractional safe zones. Templates expose seek(tMs). Built-in templates are minimal, spotlight and mono; font assets retain their separate OFL license. Both config files are validated strictly: a misspelled key is an error that names the key instead of silently falling back to a default.",
+          "zh": "card.yaml 定义 title、可选 subtitle、lines、palette 与 platform。render.json 定义 fps、size、标题/逐行/结尾时序及比例安全区。模板暴露 seek(tMs)。内置模板为 minimal、spotlight 与 mono；字体保留独立 OFL 许可。两个配置文件都按严格模式校验：拼错的键会直接报错并指出键名，而不是静默退回默认值。"
         }
       },
       {
@@ -222,8 +223,8 @@
           "zh": "进一步使用"
         },
         "body": {
-          "en": "The CLI exposes the following operations. Commands after the example use your own paths or identifiers.",
-          "zh": "CLI 提供以下操作。示例之外的命令需要替换成你的文件路径或标识。"
+          "en": "The CLI exposes the following operations. Commands after the example use your own paths or identifiers. check reports which fields its style-lock verdict compared, and names the input that deviates.",
+          "zh": "CLI 提供以下操作。示例之外的命令需要替换成你的文件路径或标识。check 会说明风格锁实际比对了哪些字段，并指出偏离的那一项。"
         },
         "code": "node dist/cli.js render examples/card.yaml -t minimal -o out.mp4\nnode dist/cli.js init my-card -t spotlight\nnode dist/cli.js render my-card\nnode dist/cli.js render examples/card.yaml --project editable-card\nnode dist/cli.js check my-set/\nnode dist/cli.js gallery examples/card.yaml -o my-gallery"
       }

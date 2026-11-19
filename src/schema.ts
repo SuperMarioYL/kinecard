@@ -22,11 +22,20 @@ const hex = z
   .string()
   .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "expected a hex colour like #1D1D1F");
 
+/**
+ * card.yaml and render.json are the files users hand-edit, so every schema below
+ * is STRICT: a misspelled key (`platfrom:`, `accentt:`, `perlineMs:`) is a
+ * validation error naming the key, not a silently stripped field that lets the
+ * render fall back to a default and produce the wrong video.
+ */
+
 /** One body line. `accent` optionally overrides the palette accent for this line. */
-export const LineSchema = z.object({
-  text: z.string().min(1, "line text must not be empty"),
-  accent: hex.optional(),
-});
+export const LineSchema = z
+  .object({
+    text: z.string().min(1, "line text must not be empty"),
+    accent: hex.optional(),
+  })
+  .strict();
 export type Line = z.infer<typeof LineSchema>;
 
 /** Colour system for a card. All optional — the template supplies defaults. */
@@ -37,47 +46,56 @@ export const PaletteSchema = z
     accent: hex,
     muted: hex,
   })
-  .partial();
+  .partial()
+  .strict();
 export type Palette = z.infer<typeof PaletteSchema>;
 
 /** card.yaml */
-export const CardSchema = z.object({
-  title: z.string().min(1, "title is required"),
-  subtitle: z.string().optional(),
-  lines: z.array(LineSchema).min(1, "a card needs at least one line").max(12, "keep a card under 12 lines"),
-  palette: PaletteSchema.optional(),
-  platform: z.enum(PLATFORMS).default("douyin"),
-});
+export const CardSchema = z
+  .object({
+    title: z.string().min(1, "title is required"),
+    subtitle: z.string().optional(),
+    lines: z.array(LineSchema).min(1, "a card needs at least one line").max(12, "keep a card under 12 lines"),
+    palette: PaletteSchema.optional(),
+    platform: z.enum(PLATFORMS).default("douyin"),
+  })
+  .strict();
 export type Card = z.infer<typeof CardSchema>;
 
 /** Timing model (milliseconds). The whole animation is a pure function of these. */
-export const TimingSchema = z.object({
-  titleMs: z.number().int().positive().default(1400),
-  perLineMs: z.number().int().positive().default(1300),
-  lineInMs: z.number().int().positive().default(600),
-  outroMs: z.number().int().positive().default(1200),
-});
+export const TimingSchema = z
+  .object({
+    titleMs: z.number().int().positive().default(1400),
+    perLineMs: z.number().int().positive().default(1300),
+    lineInMs: z.number().int().positive().default(600),
+    outroMs: z.number().int().positive().default(1200),
+  })
+  .strict();
 export type Timing = z.infer<typeof TimingSchema>;
 
 /** Subtitle-safe-zone as fractions of width/height (0..1). */
-export const SafeZoneSchema = z.object({
-  top: z.number().min(0).max(0.5).default(0.08),
-  bottom: z.number().min(0).max(0.5).default(0.18),
-  left: z.number().min(0).max(0.5).default(0.06),
-  right: z.number().min(0).max(0.5).default(0.06),
-});
+export const SafeZoneSchema = z
+  .object({
+    top: z.number().min(0).max(0.5).default(0.08),
+    bottom: z.number().min(0).max(0.5).default(0.18),
+    left: z.number().min(0).max(0.5).default(0.06),
+    right: z.number().min(0).max(0.5).default(0.06),
+  })
+  .strict();
 export type SafeZone = z.infer<typeof SafeZoneSchema>;
 
 /** render.json — the full, resolved render manifest that lives in a project. */
-export const RenderConfigSchema = z.object({
-  preset: z.enum(PLATFORMS).default("douyin"),
-  fps: z.number().int().min(1).max(60).default(30),
-  size: z
-    .tuple([z.number().int().positive(), z.number().int().positive()])
-    .default([1080, 1920]),
-  timing: TimingSchema.default({}),
-  safeZone: SafeZoneSchema.default({}),
-});
+export const RenderConfigSchema = z
+  .object({
+    preset: z.enum(PLATFORMS).default("douyin"),
+    fps: z.number().int().min(1).max(60).default(30),
+    size: z
+      .tuple([z.number().int().positive(), z.number().int().positive()])
+      .default([1080, 1920]),
+    timing: TimingSchema.default({}),
+    safeZone: SafeZoneSchema.default({}),
+  })
+  .strict();
 export type RenderConfig = z.infer<typeof RenderConfigSchema>;
 
 /** Per-platform vertical rules: canvas size, fps, max duration, subtitle safe zone. */

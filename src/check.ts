@@ -16,7 +16,9 @@
  *
  * Per-card lint warnings are informational (parity with `render`); a style-lock
  * mismatch makes the set inconsistent and exits non-zero, so the check can
- * gate a CI or a pre-publish step.
+ * gate a CI or a pre-publish step. The result also carries the scope of what was
+ * actually compared, so a PASS on a one-project set is not read as evidence for
+ * a template comparison that never ran.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, isAbsolute, join, resolve } from "node:path";
@@ -28,7 +30,7 @@ import {
 } from "./schema";
 import { resolveProjectTemplate, type TemplateMetrics } from "./templates";
 import { lintCard, type Warning } from "./render";
-import { isProjectDir, loadProject, TEMPLATE_DIR } from "./project";
+import { isProjectDir, loadProject, canonicalizeBundledFontUrls, TEMPLATE_DIR } from "./project";
 
 /** One checked input, normalized: a card plus the config it would render with. */
 export interface CheckedCard {
@@ -50,11 +52,22 @@ export interface CheckIssue {
   message: string;
 }
 
+/** What the style-lock verdict actually measured. */
+export interface CheckScope {
+  /** Inputs that were linted (after set-directory expansion). */
+  cards: number;
+  /** Inputs backed by a KineCard project (template + render.json known). */
+  projects: number;
+  /** True when timing + template source were compared (needs ≥ 2 project inputs). */
+  templateCompared: boolean;
+}
+
 export interface CheckResult {
   cards: CheckedCard[];
   issues: CheckIssue[];
   /** False when any style-lock issue exists (the exit-code signal). */
   consistent: boolean;
+  scope: CheckScope;
 }
 
 function abs(p: string): string {
@@ -145,20 +158,28 @@ function canonicalJson(v: unknown): string {
 
 const TEMPLATE_FILES = ["template.html", "style.css", "template.js"] as const;
 
-/** The three template source files of a project, as raw strings. */
+/** The three template source files of a project, as comparable strings. */
 function readTemplateSources(projectDir: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const f of TEMPLATE_FILES) {
-    out[f] = readFileSync(join(projectDir, TEMPLATE_DIR, f), "utf8");
+    const raw = readFileSync(join(projectDir, TEMPLATE_DIR, f), "utf8");
+    // style.css is the one file writeProject rewrites: its bundled-font URL holds
+    // this install's absolute path. Normalize that out so the lock compares the
+    // style, not the machine that scaffolded the card (a teammate's copy of the
+    // same template must not read as a different template).
+    out[f] = f === "style.css" ? canonicalizeBundledFontUrls(raw) : raw;
   }
   return out;
 }
 
 /**
- * Lint every input, then compare the style-defining fields across the set
- * against the first input (the reference). Style lock = same platform preset,
- * same palette, and — between project inputs — same timing and byte-identical
- * template source.
+ * Lint every input, then compare the style-defining fields across the set:
+ * platform + palette against the first input (the reference), and timing +
+ * template source between project inputs against the first PROJECT input.
+ *
+ * The template reference is a project, not necessarily cards[0]: gating those
+ * comparisons on the first input's type let a mixed set with a leading
+ * card.yaml skip every project-vs-project comparison and report PASS.
  */
 export function checkSet(inputs: string[]): CheckResult {
   const expanded = expandCheckInputs(inputs);
@@ -176,10 +197,10 @@ export function checkSet(inputs: string[]): CheckResult {
     }
   }
 
-  // Cross-card style lock, against the first input as the reference.
+  // Cross-card style lock, against the first input as the platform/palette
+  // reference.
   const ref = cards[0];
   const refPalette = canonicalJson(ref.card.palette ?? null);
-  const refTemplate = ref.projectDir ? readTemplateSources(ref.projectDir) : undefined;
   for (const c of cards.slice(1)) {
     if (c.render.preset !== ref.render.preset) {
       issues.push({
@@ -195,23 +216,31 @@ export function checkSet(inputs: string[]): CheckResult {
         message: `palette differs from ${ref.name} (one sets it, the other doesn't, or the colours differ)`,
       });
     }
-    if (ref.projectDir && c.projectDir) {
-      if (canonicalJson(c.render.timing) !== canonicalJson(ref.render.timing)) {
+  }
+
+  // Timing + template source are project-level properties; compare every project
+  // input against the first project input, whatever cards[0] is.
+  const projectCards = cards.filter((c) => c.projectDir);
+  const templateRef = projectCards[0];
+  const templateRefSources =
+    templateRef?.projectDir ? readTemplateSources(templateRef.projectDir) : undefined;
+  for (const c of projectCards) {
+    if (!templateRef || !templateRefSources || !c.projectDir || c === templateRef) continue;
+    if (canonicalJson(c.render.timing) !== canonicalJson(templateRef.render.timing)) {
+      issues.push({
+        input: c.input,
+        kind: "style-lock",
+        message: `timing differs from ${templateRef.name} (render.json pacing is part of the style lock)`,
+      });
+    }
+    const cTemplate = readTemplateSources(c.projectDir);
+    for (const f of TEMPLATE_FILES) {
+      if (cTemplate[f] !== templateRefSources[f]) {
         issues.push({
           input: c.input,
           kind: "style-lock",
-          message: `timing differs from ${ref.name} (render.json pacing is part of the style lock)`,
+          message: `template/${f} differs from ${templateRef.name}'s — the set does not share one template`,
         });
-      }
-      const cTemplate = readTemplateSources(c.projectDir);
-      for (const f of TEMPLATE_FILES) {
-        if (cTemplate[f] !== refTemplate![f]) {
-          issues.push({
-            input: c.input,
-            kind: "style-lock",
-            message: `template/${f} differs from ${ref.name}'s — the set does not share one template`,
-          });
-        }
       }
     }
   }
@@ -220,5 +249,10 @@ export function checkSet(inputs: string[]): CheckResult {
     cards,
     issues,
     consistent: !issues.some((i) => i.kind === "style-lock"),
+    scope: {
+      cards: cards.length,
+      projects: projectCards.length,
+      templateCompared: projectCards.length >= 2,
+    },
   };
 }

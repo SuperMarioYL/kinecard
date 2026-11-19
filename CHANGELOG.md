@@ -4,6 +4,55 @@ All notable changes to KineCard are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.7.0] - 2026-11-20
+
+Fix-driven minor release — four defects from shipped-source review of v0.6.0,
+plus honest reporting for the style-lock verdict. No new features; the
+deterministic HTML/CSS → 9:16 render pipeline is unchanged.
+
+### Fixed
+- The style lock compares style, not the machine. `writeProject` rewrites each
+  project's bundled-font `url(...)` to an absolute `file://` path at the CLI's
+  install location (the v0.3.0 WYSIWYG fix), and `check` compared
+  `template/style.css` byte-for-byte — so two projects scaffolded from the same
+  template on different machines (a teammate's card, a moved checkout) failed
+  the lock with "the set does not share one template". The bundled-font URL is
+  now canonicalized before the comparison, keeping the file name so a
+  genuinely different font still differs; every other rule still compares
+  byte-exact. (`src/check.ts`, `src/project.ts`)
+- A leading `card.yaml` can no longer disable the project-vs-project
+  comparison. `checkSet` gated timing + template-source comparison on
+  `ref.projectDir && c.projectDir` with the reference being the first input, so
+  `kinecard check intro.yaml card-a/ card-b/` compared nothing and printed
+  PASS / exited 0 even when the two projects used different templates and
+  pacing (reproduced; the same two projects without the bare card failed
+  correctly). The template reference is now the first *project* input,
+  independent of argument order; platform and palette keep the first input as
+  their reference. (`src/check.ts`)
+- Writing a project over an existing project is refused instead of silently
+  destroying edits. Re-running the README's
+  `kinecard render examples/card.yaml --project my-card/` (or `init` twice)
+  rewrote `card.yaml`/`render.json`/`template/`, discarding the edits the
+  card.yaml header invites (reproduced through the CLI, exit 0). `writeProject`
+  now refuses an existing KineCard project with an actionable message;
+  re-render it with `kinecard render <dir>` or pick a new directory. Fresh and
+  non-project directories behave as before. (`src/project.ts`)
+- A misspelled key in `card.yaml`/`render.json` is an error instead of a silent
+  default. The schemas are strict now: `platfrom: bilibili`, `accentt:`, or
+  `perlineMs:` used to be stripped, so the render silently used douyin, the
+  palette accent, or 1300ms per line (reproduced). Validation now fails through
+  the existing readable error path and names the key. (`src/schema.ts`)
+
+### Added
+- `kinecard check` reports what its verdict measured: the CLI summary names the
+  compared fields and the project count, and explicitly says timing/template
+  were not compared when fewer than two project inputs are given, so a PASS on
+  a single card is not read as a template comparison. `checkSet()` exposes the
+  same as `scope: {cards, projects, templateCompared}`. Exit codes and the
+  consistency verdict are unchanged. (`src/check.ts`, `src/cli.ts`)
+
+[0.7.0]: https://github.com/SuperMarioYL/kinecard/releases/tag/v0.7.0
+
 ## [0.6.0] - 2026-10-17
 
 Fix-driven minor release — three defects from shipped-source review. No new

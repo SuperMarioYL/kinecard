@@ -104,11 +104,15 @@ node dist/cli.js check my-set/                 # 检查一套卡片/项目是否
 node dist/cli.js gallery examples/card.yaml -o my-gallery   # 同一张卡片 × 全部内置模板
 ```
 
-`check` 对每张卡片运行与渲染相同的安全区/时长 lint，并跨卡比对平台、配色（项目间还比对时序与模板源码），不一致时指出具体偏差项并以非零码退出。`gallery` 复用完整渲染管线，把同一份文案用每个内置模板各渲一条 MP4 并生成 gallery.html 对比页。
+`check` 对每张卡片运行与渲染相同的安全区/时长 lint，并跨卡比对平台与配色；有两个及以上项目输入时，再比对时序与模板源码（模板样式按内容比较：因安装位置不同而不同的字体绝对路径已归一化；基准是第一个项目输入，与参数顺序无关），不一致时指出具体偏差项并以非零码退出。输出会说明本次实际比对了哪些字段，只给一个项目时会明确提示时序/模板未比对。`gallery` 复用完整渲染管线，把同一份文案用每个内置模板各渲一条 MP4 并生成 gallery.html 对比页。
+
+`render <card.yaml> --project <dir>` 与 `init <dir>` 在目标目录已是 KineCard 项目时会拒绝覆盖并给出提示——项目目录就是可编辑源，其中可能已有你的修改；要重渲染请直接用 `kinecard render <dir>`。
 
 ## 配置
 
 card.yaml 定义 title、可选 subtitle、lines、palette 与 platform。render.json 定义 fps、size、标题/逐行/结尾时序及比例安全区。模板暴露 seek(tMs)。内置模板为 minimal、spotlight 与 mono；字体保留独立 OFL 许可。
+
+这两个文件按严格模式校验：拼错的键（例如 `platfrom`、`accentt`、`perlineMs`）会直接报错并指出键名，而不是静默退回默认值、渲染出与预期不符的视频。
 
 ## 集成与职责分工
 

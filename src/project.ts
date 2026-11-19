@@ -69,9 +69,40 @@ export function rewriteRelativeUrlsToAbsolute(css: string, baseDir: string): str
   });
 }
 
-/** Materialize an editable project directory. Overwrites card/render/template. */
+/**
+ * Canonicalize the bundled-font URLs a project's style.css may carry, so callers
+ * that compare template sources compare *style* rather than the machine the
+ * project was scaffolded on.
+ *
+ * writeProject rewrites the @font-face src to an ABSOLUTE `file://` path (the
+ * one rewriteRelativeUrlsToAbsolute produces), which points at wherever kinecard
+ * is installed: `/Users/a/kinecard/assets/fonts/X.woff2` vs `/home/b/...`. Two
+ * projects built from the same template on different machines are visually
+ * identical and must not read as "two different templates". Relative
+ * (`../../assets/fonts/X`) and absolute forms collapse to the same token. The
+ * file name is kept, so a genuinely different font still compares as a
+ * difference; every other rule compares byte-exact.
+ */
+export function canonicalizeBundledFontUrls(css: string): string {
+  return css.replace(
+    /url\(\s*['"]?(?:file:\/\/)?[^'")]*\/assets\/fonts\/([^'")/]+)['"]?\s*\)/g,
+    (_match, file: string) => `url("<bundled-font:${file}>")`,
+  );
+}
+
+/**
+ * Materialize an editable project directory. Refuses to write over an existing
+ * project: its card.yaml and template/ are the editable source this primitive
+ * exists to preserve, so replacing them silently would destroy the user's edits.
+ */
 export function writeProject(opts: WriteProjectOptions): string {
   const { dir, card, render, template } = opts;
+  if (isProjectDir(dir)) {
+    throw new Error(
+      `refusing to overwrite the existing KineCard project at ${dir} — it already has a ${CARD_FILE} ` +
+        `(and possibly your edits). Re-render it with \`kinecard render ${dir}\`, or choose a new directory.`,
+    );
+  }
   mkdirSync(dir, { recursive: true });
   const templateDir = join(dir, TEMPLATE_DIR);
   mkdirSync(templateDir, { recursive: true });

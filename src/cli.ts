@@ -176,6 +176,15 @@ program
           process.stdout.write(`  ✗ ${i.input}: ${i.message}\n`);
         }
       }
+      // Say what the verdict measured: a PASS is only evidence for the properties
+      // that were actually compared (timing/template need two project inputs).
+      process.stdout.write(
+        `\n风格锁比对： platform、palette（${result.scope.cards} 张输入）` +
+          (result.scope.templateCompared
+            ? `；timing、template（${result.scope.projects} 个项目）`
+            : `；timing/template 未比对（需要 ≥2 个项目输入，当前 ${result.scope.projects} 个）`) +
+          `\n`,
+      );
       process.stdout.write(
         result.consistent
           ? `\n一致性： PASS（安全区/时长警告不破坏风格锁）\n`

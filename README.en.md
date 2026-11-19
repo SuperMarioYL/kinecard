@@ -104,11 +104,15 @@ node dist/cli.js check my-set/                 # multi-card style-lock check
 node dist/cli.js gallery examples/card.yaml -o my-gallery   # one card x every template
 ```
 
-`check` runs the same safe-zone/duration lint the renderer uses on every card, then compares platform and palette across the set (plus timing and template sources between projects), naming exactly which input deviates and exiting non-zero on inconsistency. `gallery` reuses the full render pipeline to render the same copy once per built-in template and writes a gallery.html comparison page.
+`check` runs the same safe-zone/duration lint the renderer uses on every card, then compares platform and palette across the set; with two or more project inputs it also compares timing and template source (template style is compared by content — the absolute font path that varies with the install location is normalized out — and the reference is the first project input, not whichever argument came first), naming exactly which input deviates and exiting non-zero on inconsistency. The output reports which fields were actually compared, and says so explicitly when a single project makes timing/template unverifiable. `gallery` reuses the full render pipeline to render the same copy once per built-in template and writes a gallery.html comparison page.
+
+`render <card.yaml> --project <dir>` and `init <dir>` refuse to write into a directory that is already a KineCard project — that directory is the editable source and may hold your edits; re-render it with `kinecard render <dir>` instead.
 
 ## Configuration
 
 card.yaml owns title, optional subtitle, lines, palette and platform. render.json owns fps, size, title/per-line/outro timing and fractional safe zones. Templates expose seek(tMs). Built-in templates are minimal, spotlight and mono; font assets retain their separate OFL license.
+
+Both files are validated strictly: a misspelled key (`platfrom`, `accentt`, `perlineMs`, …) is an error that names the key, instead of being silently dropped so the render falls back to a default and differs from what you wrote.
 
 ## Integrations and responsibilities
 

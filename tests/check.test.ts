@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -115,4 +116,37 @@ test("per-card lint warnings surface but do not break the lock", () => {
   );
   const warned = result.cards.find((c) => c.input === b)!;
   assert.ok(warned.warnings.length >= 1);
+});
+
+test("m5_check_verdict_scope: the result reports what was actually compared", () => {
+  const root = mkdtempSync(join(tmpdir(), "kc-check-scope-"));
+  const a = writeMonoProject(root, "card-a");
+  const b = writeMonoProject(root, "card-b");
+
+  assert.deepEqual(checkSet([a]).scope, { cards: 1, projects: 1, templateCompared: false });
+  assert.deepEqual(checkSet([a, b]).scope, { cards: 2, projects: 2, templateCompared: true });
+
+  // A bare card.yaml counts as an input but carries no template to compare.
+  const bare = join(root, "intro.yaml");
+  writeFileSync(bare, "title: 序章\nlines:\n  - text: 一行\n");
+  assert.deepEqual(checkSet([bare, a]).scope, { cards: 2, projects: 1, templateCompared: false });
+});
+
+test("m5_check_verdict_scope: `kinecard check` prints the compared fields", () => {
+  const root = mkdtempSync(join(tmpdir(), "kc-check-cli-"));
+  const a = writeMonoProject(root, "card-a");
+  const b = writeMonoProject(root, "card-b");
+  const run = (...args: string[]) =>
+    spawnSync(process.execPath, ["--import", "tsx", "src/cli.ts", "check", ...args], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+    });
+
+  const two = run(a, b);
+  assert.equal(two.status, 0, two.stderr);
+  assert.match(two.stdout, /风格锁比对： platform、palette（2 张输入）；timing、template（2 个项目）/);
+
+  const one = run(a);
+  assert.equal(one.status, 0, one.stderr);
+  assert.match(one.stdout, /timing\/template 未比对（需要 ≥2 个项目输入，当前 1 个）/);
 });
